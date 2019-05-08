@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InvalidClassException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.net.URI;
@@ -138,21 +140,45 @@ public class GroovyService {
         loadConfirmationSuppliers();
     }
 
-    @SuppressWarnings("unchecked")
     private void loadConfirmationSuppliers() {
         Arrays.stream(groovyClassLoader.getLoadedClasses())
                 .filter(aClass -> aClass.getGenericInterfaces().length != 0
                         && aClass.getGenericInterfaces()[0] instanceof ParameterizedType
                         && ((ParameterizedType) aClass.getGenericInterfaces()[0]).getRawType().equals(ConfirmationSupplier.class)
                 )
-                .forEach(aClass -> {
-                    try {
-                        confirmationSuppliers.put((Class<? extends Request>) ((ParameterizedType) aClass.getGenericInterfaces()[0]).getActualTypeArguments()[0],
-                                (ConfirmationSupplier) aClass.getConstructor().newInstance());
-                    } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-                        LOGGER.error(String.format("Could not instantiate Confirmation supplier: %s", aClass), e);
-                    }
-                });
+                .forEach(this::putToCache);
+    }
+
+    public void uploadGroovyScript(InputStream inputStream, String scriptName) throws Exception {
+        if (USE_SCRIPTS_FOLDER) {
+            Path destination = Paths.get(SCRIPTS_FOLDER.toString(), scriptName);
+            LOGGER.debug("Replacing file {}", destination);
+            Files.deleteIfExists(destination);
+            try (ReadableByteChannel src = Channels.newChannel(inputStream);
+                 FileChannel dest = new FileOutputStream(destination.toFile()).getChannel()) {
+                dest.transferFrom(src, 0, Integer.MAX_VALUE);
+            }
+
+            Class uploadedClass = groovyClassLoader.parseClass(destination.toFile());
+            if (uploadedClass.getGenericInterfaces().length != 0 &&
+                    uploadedClass.getGenericInterfaces()[0] instanceof ParameterizedType
+                    && ((ParameterizedType) uploadedClass.getGenericInterfaces()[0]).getRawType().equals(ConfirmationSupplier.class)) {
+                putToCache(uploadedClass);
+            } else {
+                throw new InvalidClassException(String.format("Could not load class from file %s, check that class implements " +
+                        "ConfirmationSupplier<REQUEST extends Request, RESPONSE extends Confirmation>", destination));
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void putToCache(Class aClass) {
+        try {
+            confirmationSuppliers.put((Class<? extends Request>) ((ParameterizedType) aClass.getGenericInterfaces()[0]).getActualTypeArguments()[0],
+                    (ConfirmationSupplier) aClass.getConstructor().newInstance());
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+            LOGGER.error(String.format("Could not instantiate Confirmation supplier: %s", aClass), e);
+        }
     }
 
     @SuppressWarnings("unchecked")
