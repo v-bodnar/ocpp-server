@@ -11,4 +11,5 @@ Main dependencies:
 * Jersey
 * Jackson
 
-Groovy files will be created under path: LITHOS_HOME/ocpp/groovy. LITHOS_HOME - environment variable
+Groovy files will be created under path: LITHOS_HOME/ocpp/groovy. 
+LITHOS_HOME - environment variable
