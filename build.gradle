@@ -41,18 +41,24 @@ if (currentOS.isWindows()) {
 
 dependencies {
     compile group: 'javax.activation', name: 'activation', version: '1.1.1'
+    compile group: 'javax.xml', name: 'jaxb-api', version: '2.1'
+    compile group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.0'
+    compile group: 'javax.ws.rs', name: 'javax.ws.rs-api', version: '2.1'
+    compile group: 'javax.xml.ws', name: 'jaxws-api', version: '2.3.1'
+
     compile group: 'org.eclipse.jetty', name: 'jetty-plus', version: '9.4.10.v20180503'
     compile group: 'org.glassfish.jersey.containers', name: 'jersey-container-servlet-core', version: '2.27'
     compile group: 'org.glassfish.jersey.inject', name: 'jersey-hk2', version: '2.27'
     compile group: 'org.glassfish.jersey.media', name: 'jersey-media-json-jackson', version: '2.7'
-    compile group: 'javax.ws.rs', name: 'javax.ws.rs-api', version: '2.1'
-    compile group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.0'
-    compile group: 'org.codehaus.groovy', name: 'groovy-all', version: '3.0.0-alpha-4'
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.4'
     compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.9.4'
+
+    compile group: 'org.codehaus.groovy', name: 'groovy-all', version: '3.0.0-alpha-4'
+
     compile "org.openjfx:javafx-base:$javafx.version:${platform}"
     compile "org.openjfx:javafx-graphics:$javafx.version:${platform}"
     compile "org.openjfx:javafx-controls:$javafx.version:${platform}"
+
     compile 'com.github.v-bodnar.Java-OCA-OCPP:v1_6:master-SNAPSHOT'
     compile 'com.github.v-bodnar.Java-OCA-OCPP:common:master-SNAPSHOT'
     testCompile group: 'junit', name: 'junit', version: '4.12'

@@ -6,7 +6,6 @@ import com.omb.ocpp.server.handler.RemoteTriggerEventHandler;
 import eu.chargetime.ocpp.JSONServer;
 import eu.chargetime.ocpp.NotConnectedException;
 import eu.chargetime.ocpp.OccurenceConstraintException;
-import eu.chargetime.ocpp.PropertyConstraintException;
 import eu.chargetime.ocpp.ServerEvents;
 import eu.chargetime.ocpp.UnsupportedFeatureException;
 import eu.chargetime.ocpp.feature.profile.ClientFirmwareManagementProfile;
@@ -15,20 +14,11 @@ import eu.chargetime.ocpp.feature.profile.Profile;
 import eu.chargetime.ocpp.feature.profile.ServerCoreProfile;
 import eu.chargetime.ocpp.model.Request;
 import eu.chargetime.ocpp.model.SessionInformation;
-import eu.chargetime.ocpp.model.core.AvailabilityType;
-import eu.chargetime.ocpp.model.core.ChangeAvailabilityRequest;
-import eu.chargetime.ocpp.model.core.ChangeConfigurationRequest;
-import eu.chargetime.ocpp.model.core.ClearCacheRequest;
-import eu.chargetime.ocpp.model.core.GetConfigurationRequest;
-import eu.chargetime.ocpp.model.core.ResetRequest;
-import eu.chargetime.ocpp.model.core.ResetType;
-import eu.chargetime.ocpp.model.firmware.GetDiagnosticsRequest;
-
+import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
+import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -36,13 +26,23 @@ import java.util.UUID;
 
 import static com.omb.ocpp.gui.StubRequestsFactory.toJson;
 
+@Service
 public class OcppServerService {
     private static final Logger LOGGER = LoggerFactory.getLogger(OcppServerService.class);
-    private ServerCoreProfile core = new ServerCoreProfile(new CoreEventHandler());
+
     private Map<UUID, SessionInformation> sessionList = new HashMap<>();
-    private Profile firmwareProfile = new ClientFirmwareManagementProfile(new FirmwareManagementEventHandler());
-    private Profile remoteTriggerProfile = new ClientRemoteTriggerProfile(new RemoteTriggerEventHandler());
     private SessionsListener sessionsListener = new StubSessionListener();
+    private ServerCoreProfile coreProfile;
+    private Profile firmwareProfile;
+    private Profile remoteTriggerProfile;
+
+    @Inject
+    public OcppServerService(FirmwareManagementEventHandler firmwareManagementEventHandler,
+                             RemoteTriggerEventHandler remoteTriggerEventHandler, CoreEventHandler coreEventHandler) {
+        this.coreProfile = new ServerCoreProfile(coreEventHandler);
+        this.firmwareProfile = new ClientFirmwareManagementProfile(firmwareManagementEventHandler);
+        this.remoteTriggerProfile = new ClientRemoteTriggerProfile(remoteTriggerEventHandler);
+    }
 
     private JSONServer server;
 
@@ -52,7 +52,7 @@ public class OcppServerService {
             LOGGER.warn("Server already created, no actions will be performed");
             return;
         }
-        server = new JSONServer(core);
+        server = new JSONServer(coreProfile);
         server.addFeatureProfile(firmwareProfile);
         server.addFeatureProfile(remoteTriggerProfile);
 
@@ -61,14 +61,15 @@ public class OcppServerService {
             @Override
             public void newSession(UUID sessionIndex, SessionInformation information) {
                 // sessionIndex is used to send messages.
-                LOGGER.debug("New session " + sessionIndex + ": " + information.getIdentifier());
+                LOGGER.debug(String.format("New session: %s information: %s", sessionIndex,
+                        information.getIdentifier()));
                 sessionList.put(sessionIndex, information);
                 sessionsListener.onSessionsCountChange(sessionList);
             }
 
             @Override
             public void lostSession(UUID sessionIndex) {
-                LOGGER.debug("Session " + sessionIndex + " lost connection");
+                LOGGER.debug("Session {} lost connection", sessionIndex);
                 sessionList.remove(sessionIndex);
                 sessionsListener.onSessionsCountChange(sessionList);
             }
@@ -94,22 +95,15 @@ public class OcppServerService {
         Optional<UUID> sessionUUID = sessionList.entrySet().stream()
                 .filter(entry -> entry.getValue().getIdentifier().equals(identifier)
                         && entry.getValue().getAddress().toString().equals(address))
-                .map(uuidSessionInformationEntry -> uuidSessionInformationEntry.getKey())
+                .map(Map.Entry::getKey)
                 .findAny();
-        if (!sessionUUID.isPresent()) {
-            LOGGER.error("Could not find client by session token: {}", sessionToken);
-            return;
-        }
 
         try {
             LOGGER.debug("Sending message: {} to {}", toJson(request), sessionToken);
-            server.send(sessionUUID.get(), request);
-        } catch (OccurenceConstraintException e) {
-            e.printStackTrace();
-        } catch (UnsupportedFeatureException e) {
-            e.printStackTrace();
-        } catch (NotConnectedException e) {
-            e.printStackTrace();
+            server.send(sessionUUID.orElseThrow(() -> new IllegalArgumentException(String.format("Could not find " +
+                    "client by session token: %s", sessionToken))), request);
+        } catch (OccurenceConstraintException | UnsupportedFeatureException | NotConnectedException e) {
+            LOGGER.error("Could not send message: {} to {}", toJson(request), sessionToken);
         }
 
     }
@@ -128,7 +122,7 @@ public class OcppServerService {
         this.sessionsListener = sessionsListener;
     }
 
-    public Optional<SessionInformation> getSessionInformation(UUID sessionUuid){
+    public Optional<SessionInformation> getSessionInformation(UUID sessionUuid) {
         return Optional.ofNullable(sessionList.get(sessionUuid));
     }
 }

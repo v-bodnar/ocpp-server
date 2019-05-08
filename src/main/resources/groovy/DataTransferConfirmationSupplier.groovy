@@ -2,7 +2,8 @@ package com.omb.ocpp.groovy
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
-import com.omb.ocpp.gui.ApplicationContext
+import com.omb.ocpp.gui.GuiApplication
+import com.omb.ocpp.server.OcppServerService
 import eu.chargetime.ocpp.JSONCommunicator
 import eu.chargetime.ocpp.model.SessionInformation
 import eu.chargetime.ocpp.model.core.DataTransferConfirmation
@@ -18,12 +19,12 @@ import java.time.format.DateTimeFormatter
 class DataTransferConfirmationSupplier implements ConfirmationSupplier<DataTransferRequest, DataTransferConfirmation> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DataTransferConfirmationSupplier.class)
     private static final JSONCommunicator jsonCommunicator = new JSONCommunicator(null)
+    private final OcppServerService ocppServerService = GuiApplication.APPLICATION.getService(OcppServerService.class)
 
     @Override
     DataTransferConfirmation getConfirmation(UUID sessionUuid, DataTransferRequest request) {
         SessionInformation unknownSession = new SessionInformation.Builder().Identifier("unknown").build()
-        SessionInformation sessionInformation = ApplicationContext.INSTANCE.ocppServerService
-                .getSessionInformation(sessionUuid).orElse(unknownSession)
+        SessionInformation sessionInformation = ocppServerService.getSessionInformation(sessionUuid).orElse(unknownSession)
 
         DataTransferConfirmation confirmation = null
         // consider using external groovy file for each message

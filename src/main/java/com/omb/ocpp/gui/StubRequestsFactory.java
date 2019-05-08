@@ -43,6 +43,9 @@ public class StubRequestsFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(StubRequestsFactory.class);
 
+    private static final String NOT_SUPPORTED = "Request not supported";
+    private static final String REQUEST_CONSTRUCTION_ERROR = "Request construction error";
+
     private static ObjectMapper objectMapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
@@ -50,11 +53,10 @@ public class StubRequestsFactory {
             .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
             .registerModule(new JavaTimeModule());
 
-    private static String NOT_SUPPORTED = "Request not supported";
-    private static String REQUEST_CONSTRUCTION_ERROR = "Request construction error";
+    private StubRequestsFactory() {}
 
 
-    public static String getStubRequest(Class<? extends Request> requestClass) {
+    static String getStubRequest(Class<? extends Request> requestClass) {
         try {
             if (requestClass.equals(ChangeAvailabilityRequest.class)) {
                 return getChangeAvailabilityRequest();
@@ -99,14 +101,14 @@ public class StubRequestsFactory {
         }
     }
 
-    private static String getChangeAvailabilityRequest() throws PropertyConstraintException, JsonProcessingException {
+    private static String getChangeAvailabilityRequest() throws JsonProcessingException {
         ChangeAvailabilityRequest changeAvailabilityRequest = new ChangeAvailabilityRequest();
         changeAvailabilityRequest.setConnectorId(1);
         changeAvailabilityRequest.setType(AvailabilityType.Operative);
         return objectMapper.writeValueAsString(changeAvailabilityRequest);
     }
 
-    private static String getChangeConfigurationRequest() throws PropertyConstraintException, JsonProcessingException {
+    private static String getChangeConfigurationRequest() throws JsonProcessingException {
         ChangeConfigurationRequest changeConfigurationRequest = new ChangeConfigurationRequest();
         changeConfigurationRequest.setKey("AuthorizationCacheEnabled");
         changeConfigurationRequest.setValue("false");
@@ -118,7 +120,7 @@ public class StubRequestsFactory {
         return objectMapper.writeValueAsString(clearCacheRequest);
     }
 
-    private static String getDataTransferRequest() throws PropertyConstraintException, JsonProcessingException {
+    private static String getDataTransferRequest() throws JsonProcessingException {
         DataTransferRequest dataTransferRequest = new DataTransferRequest();
         dataTransferRequest.setData("Data message");
         dataTransferRequest.setMessageId("MessageId");
@@ -126,13 +128,13 @@ public class StubRequestsFactory {
         return objectMapper.writeValueAsString(dataTransferRequest);
     }
 
-    private static String getGetConfigurationRequest() throws PropertyConstraintException, JsonProcessingException {
+    private static String getGetConfigurationRequest() throws JsonProcessingException {
         GetConfigurationRequest getConfigurationRequest = new GetConfigurationRequest();
         getConfigurationRequest.setKey(new String[]{"AuthorizationCacheEnabled"});
         return objectMapper.writeValueAsString(getConfigurationRequest);
     }
 
-    private static String getMeterValuesRequest() throws PropertyConstraintException, JsonProcessingException {
+    private static String getMeterValuesRequest() throws JsonProcessingException {
         SampledValue sampledValue = new SampledValue();
         sampledValue.setValue("100");
         sampledValue.setPhase("N");
@@ -146,7 +148,7 @@ public class StubRequestsFactory {
         return objectMapper.writeValueAsString(meterValuesRequest);
     }
 
-    private static String getRemoteStartTransactionRequest() throws PropertyConstraintException, JsonProcessingException {
+    private static String getRemoteStartTransactionRequest() throws JsonProcessingException {
         RemoteStartTransactionRequest remoteStartTransactionRequest = new RemoteStartTransactionRequest();
         remoteStartTransactionRequest.setConnectorId(1);
         remoteStartTransactionRequest.setIdTag("idTag");
@@ -154,37 +156,37 @@ public class StubRequestsFactory {
         return objectMapper.writeValueAsString(remoteStartTransactionRequest);
     }
 
-    private static String getRemoteStopTransactionRequest() throws PropertyConstraintException, JsonProcessingException {
+    private static String getRemoteStopTransactionRequest() throws JsonProcessingException {
         RemoteStopTransactionRequest remoteStopTransactionRequest = new RemoteStopTransactionRequest();
         remoteStopTransactionRequest.setTransactionId(123456);
         return objectMapper.writeValueAsString(remoteStopTransactionRequest);
     }
 
-    private static String getResetRequest() throws PropertyConstraintException, JsonProcessingException {
+    private static String getResetRequest() throws JsonProcessingException {
         ResetRequest resetRequest = new ResetRequest();
         resetRequest.setType(ResetType.Soft);
         return objectMapper.writeValueAsString(resetRequest);
     }
 
-    private static String getUnlockConnectorRequest() throws PropertyConstraintException, JsonProcessingException {
+    private static String getUnlockConnectorRequest() throws JsonProcessingException {
         UnlockConnectorRequest unlockConnectorRequest = new UnlockConnectorRequest();
         unlockConnectorRequest.setConnectorId(1);
         return objectMapper.writeValueAsString(unlockConnectorRequest);
     }
 
-    private static String getDiagnosticsStatusNotificationRequest() throws PropertyConstraintException, JsonProcessingException {
+    private static String getDiagnosticsStatusNotificationRequest() throws JsonProcessingException {
         DiagnosticsStatusNotificationRequest diagnosticsStatusNotificationRequest = new DiagnosticsStatusNotificationRequest();
         diagnosticsStatusNotificationRequest.setStatus(DiagnosticsStatus.Idle);
         return objectMapper.writeValueAsString(diagnosticsStatusNotificationRequest);
     }
 
-    private static String getFirmwareStatusNotificationRequest() throws PropertyConstraintException, JsonProcessingException {
+    private static String getFirmwareStatusNotificationRequest() throws JsonProcessingException {
         FirmwareStatusNotificationRequest firmwareStatusNotificationRequest = new FirmwareStatusNotificationRequest();
         firmwareStatusNotificationRequest.setStatus(FirmwareStatus.Idle);
         return objectMapper.writeValueAsString(firmwareStatusNotificationRequest);
     }
 
-    private static String getGetDiagnosticsRequest() throws PropertyConstraintException, JsonProcessingException {
+    private static String getGetDiagnosticsRequest() throws JsonProcessingException {
         Calendar startDate = Calendar.getInstance();
         startDate.add(Calendar.DATE, 1);
         Calendar stopDate = Calendar.getInstance();
@@ -198,7 +200,7 @@ public class StubRequestsFactory {
         return objectMapper.writeValueAsString(getDiagnosticsRequest);
     }
 
-    private static String getUpdateFirmwareRequest() throws PropertyConstraintException, JsonProcessingException {
+    private static String getUpdateFirmwareRequest() throws JsonProcessingException {
         UpdateFirmwareRequest updateFirmwareRequest = new UpdateFirmwareRequest();
         Calendar startDate = Calendar.getInstance();
         startDate.add(Calendar.DATE, 1);
@@ -209,17 +211,17 @@ public class StubRequestsFactory {
         return objectMapper.writeValueAsString(updateFirmwareRequest);
     }
 
-    private static String getGetLocalListVersionRequest() throws PropertyConstraintException, JsonProcessingException {
+    private static String getGetLocalListVersionRequest() throws JsonProcessingException {
         GetLocalListVersionRequest getLocalListVersionRequest = new GetLocalListVersionRequest();
         return objectMapper.writeValueAsString(getLocalListVersionRequest);
     }
 
-    private static String getSendLocalListRequest() throws PropertyConstraintException, JsonProcessingException {
+    private static String getSendLocalListRequest() throws JsonProcessingException {
         SendLocalListRequest sendLocalListRequest = new SendLocalListRequest();
         return objectMapper.writeValueAsString(sendLocalListRequest);
     }
 
-    private static String getTriggerMessageRequest() throws PropertyConstraintException, JsonProcessingException {
+    private static String getTriggerMessageRequest() throws JsonProcessingException {
         TriggerMessageRequest triggerMessageRequest = new TriggerMessageRequest();
         triggerMessageRequest.setConnectorId(1);
         triggerMessageRequest.setRequestedMessage(TriggerMessageRequestType.Heartbeat);

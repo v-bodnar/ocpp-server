@@ -9,12 +9,17 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import org.glassfish.hk2.api.ServiceLocator;
 
-public class ServerTab {
+class ServerTab {
 
-    private GroovyService groovyService = ApplicationContext.INSTANCE.getGroovyService();
+    private final GroovyService groovyService;
 
-    public Tab constructTab(Stage primaryStage) {
+    ServerTab(ServiceLocator applicationContext) {
+        this.groovyService = applicationContext.getService(GroovyService.class);
+    }
+
+    Tab constructTab(Stage primaryStage) {
         Tab tab = new Tab();
         tab.setText("G Server");
         tab.setClosable(false);

@@ -9,9 +9,11 @@ import eu.chargetime.ocpp.model.core.ChangeAvailabilityRequest;
 import eu.chargetime.ocpp.model.core.ChangeConfigurationRequest;
 import eu.chargetime.ocpp.model.core.ResetRequest;
 import eu.chargetime.ocpp.model.firmware.GetDiagnosticsRequest;
+import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -19,12 +21,18 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+@Service
 @Path("/")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class RestAPI {
-    private final Logger logger = LoggerFactory.getLogger(RestAPI.class);
-    private final OcppServerService ocppServerService = new OcppServerService();
+    private static final Logger LOGGER = LoggerFactory.getLogger(RestAPI.class);
+    private final OcppServerService ocppServerService;
+
+    @Inject
+    public RestAPI(OcppServerService ocppServerService) {
+        this.ocppServerService = ocppServerService;
+    }
 
     @POST
     @Path("send-reset-request")
@@ -55,7 +63,7 @@ public class RestAPI {
             ocppServerService.sendToAll(request);
             return Response.ok().build();
         } catch (NotConnectedException | OccurenceConstraintException | UnsupportedFeatureException e) {
-            e.printStackTrace();
+            LOGGER.error("Could not send request", e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), e.getMessage()).build();
         }
     }

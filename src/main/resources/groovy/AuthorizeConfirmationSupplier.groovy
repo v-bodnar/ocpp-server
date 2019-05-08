@@ -1,7 +1,8 @@
 package com.omb.ocpp.groovy
 
+import com.omb.ocpp.gui.GuiApplication
+import com.omb.ocpp.server.OcppServerService
 import eu.chargetime.ocpp.JSONCommunicator
-import com.omb.ocpp.gui.ApplicationContext
 import eu.chargetime.ocpp.model.SessionInformation
 import eu.chargetime.ocpp.model.core.AuthorizationStatus
 import eu.chargetime.ocpp.model.core.AuthorizeConfirmation
@@ -13,12 +14,12 @@ import org.slf4j.LoggerFactory
 class AuthorizeConfirmationSupplier implements ConfirmationSupplier<AuthorizeRequest, AuthorizeConfirmation> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthorizeConfirmationSupplier.class)
     private static final JSONCommunicator jsonCommunicator = new JSONCommunicator(null)
+    private final OcppServerService ocppServerService = GuiApplication.APPLICATION.getService(OcppServerService.class)
 
     @Override
     AuthorizeConfirmation getConfirmation(UUID sessionUuid, AuthorizeRequest request) {
         SessionInformation unknownSession = new SessionInformation.Builder().Identifier("unknown").build()
-        SessionInformation sessionInformation = ApplicationContext.INSTANCE.ocppServerService
-                .getSessionInformation(sessionUuid).orElse(unknownSession)
+        SessionInformation sessionInformation = ocppServerService.getSessionInformation(sessionUuid).orElse(unknownSession)
 
         IdTagInfo idTagInfo = new IdTagInfo()
         idTagInfo.setExpiryDate(new GregorianCalendar(2220, 1, 1))

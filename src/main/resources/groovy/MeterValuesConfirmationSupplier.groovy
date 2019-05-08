@@ -1,6 +1,8 @@
 package com.omb.ocpp.groovy
 
-import com.omb.ocpp.gui.ApplicationContext
+
+import com.omb.ocpp.gui.GuiApplication
+import com.omb.ocpp.server.OcppServerService
 import eu.chargetime.ocpp.JSONCommunicator
 import eu.chargetime.ocpp.model.SessionInformation
 import eu.chargetime.ocpp.model.core.MeterValuesConfirmation
@@ -11,12 +13,12 @@ import org.slf4j.LoggerFactory
 class MeterValuesConfirmationSupplier implements ConfirmationSupplier<MeterValuesRequest, MeterValuesConfirmation> {
     private static final Logger LOGGER = LoggerFactory.getLogger(MeterValuesConfirmationSupplier.class)
     private static final JSONCommunicator jsonCommunicator = new JSONCommunicator(null)
+    private final OcppServerService ocppServerService = GuiApplication.APPLICATION.getService(OcppServerService.class)
 
     @Override
     MeterValuesConfirmation getConfirmation(UUID sessionUuid, MeterValuesRequest request) {
         SessionInformation unknownSession = new SessionInformation.Builder().Identifier("unknown").build()
-        SessionInformation sessionInformation = ApplicationContext.INSTANCE.ocppServerService
-                .getSessionInformation(sessionUuid).orElse(unknownSession)
+        SessionInformation sessionInformation = ocppServerService.getSessionInformation(sessionUuid).orElse(unknownSession)
         MeterValuesConfirmation confirmation = new MeterValuesConfirmation()
         LOGGER.debug("Responding to {} from client: {} body: {}", request.getClass().simpleName, sessionInformation
                 .identifier, jsonCommunicator.packPayload(confirmation))

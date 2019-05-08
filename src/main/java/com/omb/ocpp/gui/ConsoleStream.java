@@ -15,12 +15,12 @@ public class ConsoleStream extends OutputStream {
     private OutputStream fdOut = new FileOutputStream(FileDescriptor.out);
     private PrintStream printStream = new PrintStream(new BufferedOutputStream(fdOut, 128), true);
 
-    public ConsoleStream(TextArea ta) {
+    ConsoleStream(TextArea ta) {
         this.output = ta;
     }
 
     @Override
-    public void write(int i) throws IOException {
+    public void write(int i) {
         Platform.runLater(() -> {
             printStream.print((char) i);
             output.appendText(String.valueOf((char) i));

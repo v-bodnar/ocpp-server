@@ -1,7 +1,6 @@
 package com.omb.ocpp.server.handler;
 
 import com.omb.ocpp.groovy.GroovyService;
-import com.omb.ocpp.gui.ApplicationContext;
 import eu.chargetime.ocpp.feature.profile.ServerCoreEventHandler;
 import eu.chargetime.ocpp.model.core.AuthorizeConfirmation;
 import eu.chargetime.ocpp.model.core.AuthorizeRequest;
@@ -19,14 +18,19 @@ import eu.chargetime.ocpp.model.core.StatusNotificationConfirmation;
 import eu.chargetime.ocpp.model.core.StatusNotificationRequest;
 import eu.chargetime.ocpp.model.core.StopTransactionConfirmation;
 import eu.chargetime.ocpp.model.core.StopTransactionRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jvnet.hk2.annotations.Service;
 
+import javax.inject.Inject;
 import java.util.UUID;
 
+@Service
 public class CoreEventHandler implements ServerCoreEventHandler {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CoreEventHandler.class);
-    private final GroovyService groovyService = ApplicationContext.INSTANCE.getGroovyService();
+    private final GroovyService groovyService;
+
+    @Inject
+    public CoreEventHandler(GroovyService groovyService) {
+        this.groovyService = groovyService;
+    }
 
     @Override
     public AuthorizeConfirmation handleAuthorizeRequest(UUID sessionIndex, AuthorizeRequest request) {

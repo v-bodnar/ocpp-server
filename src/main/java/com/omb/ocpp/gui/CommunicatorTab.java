@@ -1,6 +1,7 @@
 package com.omb.ocpp.gui;
 
 import com.omb.ocpp.server.OcppServerService;
+import com.omb.ocpp.server.SessionsListener;
 import eu.chargetime.ocpp.model.Request;
 import eu.chargetime.ocpp.model.SessionInformation;
 import eu.chargetime.ocpp.model.core.ChangeAvailabilityRequest;
@@ -35,9 +36,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
+import org.glassfish.hk2.api.ServiceLocator;
+import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -48,16 +52,23 @@ import java.util.stream.Collectors;
 
 import static com.omb.ocpp.gui.StubRequestsFactory.toRequest;
 
+@Service
 public class CommunicatorTab {
     private static final Logger logger = LoggerFactory.getLogger(CommunicatorTab.class);
 
-    private OcppServerService ocppServerService = ApplicationContext.INSTANCE.getOcppServerService();
-    private ListView<String> sessionsList = new ListView<>();
-    private TextField selectedClientField = new TextField();
-    private ComboBox<Class<? extends Request>> messageTypeCombo = new ComboBox<>();
-    private TextArea messageTextArea = new TextArea();
-    private Button sendButton = new Button("Send Message");
-    private Set<Class<? extends Request>> messagesAvailableForSend = getMessagesAvailableForSend();
+    private final ListView<String> sessionsList = new ListView<>();
+    private final TextField selectedClientField = new TextField();
+    private final ComboBox<Class<? extends Request>> messageTypeCombo = new ComboBox<>();
+    private final TextArea messageTextArea = new TextArea();
+    private final Button sendButton = new Button("Send Message");
+    private final Set<Class<? extends Request>> messagesAvailableForSend = getMessagesAvailableForSend();
+
+    private final OcppServerService ocppServerService;
+
+    @Inject
+    public CommunicatorTab(ServiceLocator applicationContext) {
+        this.ocppServerService = applicationContext.getService(OcppServerService.class);
+    }
 
     public Tab constructTab() {
         Tab tab = new Tab();
@@ -67,10 +78,9 @@ public class CommunicatorTab {
         ObservableList<String> items = FXCollections.observableArrayList(
                 getSessionsListFormatted(ocppServerService.getSessionList()));
         sessionsList.setItems(items);
-        sessionsList.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            selectedClientField.setText(newValue);
-        });
-        ocppServerService.setSessionsListener(new SessionsListener());
+        sessionsList.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) ->
+                selectedClientField.setText(newValue));
+        ocppServerService.setSessionsListener(new GuiSessionsListener());
 
         Label label = new Label();
         label.setText("Selected client:");
@@ -103,7 +113,7 @@ public class CommunicatorTab {
             }
         });
         messageTypeCombo.setOnAction(event -> {
-            if (messageTypeCombo.getValue() instanceof Class) {
+            if (messageTypeCombo.getValue() != null) {
                 messageTextArea.setText(StubRequestsFactory.getStubRequest(messageTypeCombo.getValue()));
             }
         });
@@ -171,14 +181,14 @@ public class CommunicatorTab {
     }
 
 
-    public static List<String> getSessionsListFormatted(Map<UUID, SessionInformation> sessions) {
+    private static List<String> getSessionsListFormatted(Map<UUID, SessionInformation> sessions) {
         return sessions.values().stream()
                 .map(sessionInformation ->
                         String.format("%s (%s)", sessionInformation.getIdentifier(), sessionInformation.getAddress()))
                 .collect(Collectors.toList());
     }
 
-    class SessionsListener implements com.omb.ocpp.server.SessionsListener {
+    private class GuiSessionsListener implements SessionsListener {
         @Override
         public void onSessionsCountChange(Map<UUID, SessionInformation> sessions) {
             Platform.runLater(() -> {

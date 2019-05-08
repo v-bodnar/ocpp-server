@@ -1,5 +1,6 @@
 package com.omb.ocpp.gui;
 
+import com.omb.ocpp.rest.WebServer;
 import com.omb.ocpp.server.OcppServerService;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -14,6 +15,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import org.glassfish.hk2.api.ServiceLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,19 +30,26 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 
-public class GeneralTab {
-    private static final Logger logger = LoggerFactory.getLogger(GeneralTab.class);
-    private final static int DEFAULT_OCPP_PORT = 8887;
+class GeneralTab {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GeneralTab.class);
+    private static final int DEFAULT_OCPP_PORT = 8887;
 
-    private Label serverState = new Label("Stopped");
-    private ComboBox<String> ipCombobox = new ComboBox<>();
-    private TextField portTextField = new TextField();
-    private Button serverButton = new Button("Start");
-    private OcppServerService ocppServerService = ApplicationContext.INSTANCE.getOcppServerService();
+    private final Label serverState = new Label("Stopped");
+    private final ComboBox<String> ipCombobox = new ComboBox<>();
+    private final TextField portTextField = new TextField();
+    private final Button serverButton = new Button("Start");
+
+    private final OcppServerService ocppServerService;
+    private final WebServer webServer;
+
     private double textAreaHeight = 595;
 
+    GeneralTab(ServiceLocator applicationContext) {
+        this.ocppServerService = applicationContext.getService(OcppServerService.class);
+        this.webServer = applicationContext.getService(WebServer.class);
+    }
 
-    public Tab constructTab() {
+    Tab constructTab() {
         Tab tab = new Tab();
         tab.setText("General");
         tab.setClosable(false);
@@ -67,7 +76,7 @@ public class GeneralTab {
         portTextField.setText("8887");
         portTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue.matches("\\d*")) {
-                logger.error("Input from port field has to be integer, using default port: {}", DEFAULT_OCPP_PORT);
+                LOGGER.error("Input from port field has to be integer, using default port: {}", DEFAULT_OCPP_PORT);
                 portTextField.setText("" + DEFAULT_OCPP_PORT);
             }
         });
@@ -87,14 +96,14 @@ public class GeneralTab {
     }
 
     private void checkAndSetServerStateColor() {
-        if (ocppServerService.isRunning() && ApplicationContext.INSTANCE.getWebServer().isRunning()) {
+        if (ocppServerService.isRunning() && webServer.isRunning()) {
             serverState.setStyle("-fx-text-fill: #0aa000;");
             serverState.setText("Started");
             serverButton.setText("Stop");
             serverButton.setDisable(false);
             serverButton.setOnAction(event -> {
                 CompletableFuture.runAsync(ocppServerService::stop);
-                CompletableFuture.runAsync(() -> ApplicationContext.INSTANCE.getWebServer().shutDown());
+                CompletableFuture.runAsync(webServer::shutDown);
                 serverState.setText("Stopping...");
                 serverButton.setDisable(true);
             });
@@ -107,9 +116,9 @@ public class GeneralTab {
                 CompletableFuture.runAsync(() -> ocppServerService.start(ipCombobox.getValue(), portTextField.getText()));
                 CompletableFuture.runAsync(() -> {
                     try {
-                        ApplicationContext.INSTANCE.getWebServer().startServer();
+                        webServer.startServer(9090);
                     } catch (Exception e) {
-                        logger.error("Can't start REST server", e);
+                        LOGGER.error("Can't start REST server", e);
                     }
                 });
                 serverState.setText("Starting...");
@@ -123,9 +132,7 @@ public class GeneralTab {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                Platform.runLater(() -> {
-                    checkAndSetServerStateColor();
-                });
+                Platform.runLater(GeneralTab.this::checkAndSetServerStateColor);
             }
         }, 0, 3000);
     }
@@ -136,9 +143,9 @@ public class GeneralTab {
         try {
             e = NetworkInterface.getNetworkInterfaces();
         } catch (SocketException e1) {
-            logger.error("Could not retrieve ip addresses from network interfaces", e1);
+            LOGGER.error("Could not retrieve ip addresses from network interfaces", e1);
         }
-        while (e.hasMoreElements()) {
+        while (e != null && e.hasMoreElements()) {
             NetworkInterface n = (NetworkInterface) e.nextElement();
             Enumeration ee = n.getInetAddresses();
             while (ee.hasMoreElements()) {

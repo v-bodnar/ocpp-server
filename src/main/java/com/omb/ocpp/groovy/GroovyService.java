@@ -3,6 +3,7 @@ package com.omb.ocpp.groovy;
 import eu.chargetime.ocpp.model.Confirmation;
 import eu.chargetime.ocpp.model.Request;
 import groovy.lang.GroovyClassLoader;
+import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +29,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+@Service
 public class GroovyService {
     private static final Logger LOGGER = LoggerFactory.getLogger(GroovyService.class);
     private static final String LITHOS_HOME = Optional.ofNullable(System.getenv("LITHOS_HOME")).orElse("/home/bmterra/lithos");
@@ -65,12 +67,12 @@ public class GroovyService {
         final URI uri = Optional.of(innerResourceFolderUrl.toURI())
                 .orElseThrow(() -> new IOException(String.format("Could not create URI to file %s", innerResourceFolderUrl)));
         final Path innerResourceFolder;
-        if(uri.toString().contains("!")) {
+        if (uri.toString().contains("!")) {
             final String[] array = uri.toString().split("!");
-            final FileSystem fs = FileSystems.newFileSystem(URI.create(array[0]), new HashMap<>());
-            innerResourceFolder = fs.getPath(array[1]);
-
-        }else {
+            try (final FileSystem fs = FileSystems.newFileSystem(URI.create(array[0]), new HashMap<>())) {
+                innerResourceFolder = fs.getPath(array[1]);
+            }
+        } else {
             innerResourceFolder = Paths.get(uri);
         }
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -130,7 +132,7 @@ public class GroovyService {
                         }
                     });
         } catch (IOException e) {
-            LOGGER.error(String.format("Can't walk path: ", SCRIPTS_FOLDER), e);
+            LOGGER.error(String.format("Can't walk path: %s", SCRIPTS_FOLDER), e);
         }
 
         loadConfirmationSuppliers();

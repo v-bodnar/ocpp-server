@@ -1,6 +1,8 @@
 package com.omb.ocpp.groovy
 
-import com.omb.ocpp.gui.ApplicationContext
+
+import com.omb.ocpp.gui.GuiApplication
+import com.omb.ocpp.server.OcppServerService
 import eu.chargetime.ocpp.JSONCommunicator
 import eu.chargetime.ocpp.model.SessionInformation
 import eu.chargetime.ocpp.model.core.StatusNotificationConfirmation
@@ -12,12 +14,12 @@ class StatusNotificationConfirmationSupplier implements ConfirmationSupplier<Sta
         StatusNotificationConfirmation> {
     private static final Logger LOGGER = LoggerFactory.getLogger(StatusNotificationConfirmationSupplier.class)
     private static final JSONCommunicator jsonCommunicator = new JSONCommunicator(null)
+    private final OcppServerService ocppServerService = GuiApplication.APPLICATION.getService(OcppServerService.class)
 
     @Override
     StatusNotificationConfirmation getConfirmation(UUID sessionUuid, StatusNotificationRequest request) {
         SessionInformation unknownSession = new SessionInformation.Builder().Identifier("unknown").build()
-        SessionInformation sessionInformation = ApplicationContext.INSTANCE.ocppServerService
-                .getSessionInformation(sessionUuid).orElse(unknownSession)
+        SessionInformation sessionInformation = ocppServerService.getSessionInformation(sessionUuid).orElse(unknownSession)
         StatusNotificationConfirmation confirmation = new StatusNotificationConfirmation()
         LOGGER.debug("Responding to {} from client: {} body: {}", request.getClass().simpleName, sessionInformation
                 .identifier, jsonCommunicator.packPayload(confirmation))

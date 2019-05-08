@@ -7,20 +7,16 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Service
 public class WebServer {
     private static final Logger logger = LoggerFactory.getLogger(WebServer.class);
-
-    private final int restApiPortNumber;
     private Server restApiServer;
 
-    public WebServer(int restApiPortNumber) {
-        this.restApiPortNumber = restApiPortNumber;
-    }
-
-    public void startServer() throws Exception {
+    public void startServer(int restApiPortNumber) throws Exception {
         logger.info("Starting REST API server");
 
         System.setProperty("org.eclipse.jetty.util.log.class",
