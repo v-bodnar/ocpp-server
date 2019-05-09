@@ -11,39 +11,39 @@ Main dependencies:
 * Jersey
 * Jackson
 
-Groovy files will be created under path: LITHOS_HOME/ocpp/groovy. 
-LITHOS_HOME - environment variable
+Groovy files will be created under path: LITHOS_HOME/ocpp/groovy.   
+LITHOS_HOME - environment variable  
 
-usage: 
-gradle clean build
-java build/libs/ocpp-server-0.1.jar <args>
- -h,--help                    print this message
- -nogui,--nogui               indicates that application should be started without GUI.
- -ip,--ip <arg>               the ip on which server will accept OCPP and REST connections, default:127.0.0.1, works in combination with -nogui
- -ocppPort,--ocppPort <arg>   port on which OCPP server will acceptconnections, default:8887, works incombination with -nogui
- --restPort <arg>             port on which REST server will acceptconnections, default:9090, works incombination with -nogui
+usage:   
+gradle clean build  
+java build/libs/ocpp-server-0.1.jar <args>  
+ -h,--help  print this message  
+ -nogui,--nogui  indicates that application should be started without GUI.  
+ -ip,--ip <arg>  the ip on which server will accept OCPP and REST connections, default:127.0.0.1, works in combination with -nogui  
+ -ocppPort,--ocppPort <arg>  port on which OCPP server will acceptconnections, default:8887, works incombination with -nogui  
+ --restPort <arg>  port on which REST server will acceptconnections, default:9090, works incombination with -nogui  
   
-Rest api:
-	@Produces(MediaType.APPLICATION_JSON)
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Path("/")
+Rest api:  
+	@Produces(MediaType.APPLICATION_JSON)  
+	@Consumes(MediaType.APPLICATION_JSON)  
+	@Path("/")  
 	
-	  @Path("send-reset-request")
-    public Response sendResetRequest(ResetRequest resetRequest)
-
-    @POST
-    @Path("send-get-diagnostics")
-    public Response sendGetDiagnostics(GetDiagnosticsRequest getDiagnosticsRequest)
-
-    @POST
-    @Path("send-change-availability-request")
-    public Response sendChangeAvailabilityRequest(ChangeAvailabilityRequest changeAvailabilityRequest) 
-
-    @POST
-    @Path("send-change-configuration-request")
-    public Response sendChangeConfigurationRequest(ChangeConfigurationRequest changeConfigurationRequest) 
-
-    @POST
+	  @Path("send-reset-request")  
+    public Response sendResetRequest(ResetRequest resetRequest)  
+  
+    @POST  
+    @Path("send-get-diagnostics")  
+    public Response sendGetDiagnostics(GetDiagnosticsRequest getDiagnosticsRequest)  
+  
+    @POST  
+    @Path("send-change-availability-request")  
+    public Response sendChangeAvailabilityRequest(ChangeAvailabilityRequest changeAvailabilityRequest)   
+  
+    @POST  
+    @Path("send-change-configuration-request")  
+    public Response sendChangeConfigurationRequest(ChangeConfigurationRequest changeConfigurationRequest)   
+  
+    @POST  
     @Path("send-clear-cache-request")
     public Response sendClearCacheRequest(ClearCacheRequest clearCacheRequest) 
 
