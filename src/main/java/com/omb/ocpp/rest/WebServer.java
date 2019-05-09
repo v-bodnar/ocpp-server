@@ -5,6 +5,7 @@ import org.eclipse.jetty.server.Slf4jRequestLog;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.jvnet.hk2.annotations.Service;
@@ -36,7 +37,8 @@ public class WebServer {
         //Creating jersey servlet
         final ResourceConfig resourceConfig = new ResourceConfig()
                 .registerClasses(RestAPI.class)
-                .register(JacksonFeature.class);
+                .register(JacksonFeature.class)
+                .register(MultiPartFeature.class);
 
         ServletHolder jerseyServlet = new ServletHolder(new ServletContainer(resourceConfig));
         jerseyServlet.setInitOrder(0);
@@ -44,7 +46,7 @@ public class WebServer {
         restApiServer.start();
     }
 
-    public boolean isRunning(){
+    public boolean isRunning() {
         return restApiServer.isRunning();
     }
 

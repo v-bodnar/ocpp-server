@@ -50,6 +50,7 @@ dependencies {
     compile group: 'org.glassfish.jersey.containers', name: 'jersey-container-servlet-core', version: '2.27'
     compile group: 'org.glassfish.jersey.inject', name: 'jersey-hk2', version: '2.27'
     compile group: 'org.glassfish.jersey.media', name: 'jersey-media-json-jackson', version: '2.7'
+    compile group: 'org.glassfish.jersey.media', name: 'jersey-media-multipart', version: '2.27'
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.4'
     compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.9.4'
 

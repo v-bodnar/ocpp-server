@@ -1,5 +1,7 @@
 package com.omb.ocpp.rest;
 
+import com.omb.ocpp.groovy.GroovyService;
+import com.omb.ocpp.gui.Application;
 import com.omb.ocpp.server.OcppServerService;
 import eu.chargetime.ocpp.NotConnectedException;
 import eu.chargetime.ocpp.OccurenceConstraintException;
@@ -7,9 +9,18 @@ import eu.chargetime.ocpp.UnsupportedFeatureException;
 import eu.chargetime.ocpp.model.Request;
 import eu.chargetime.ocpp.model.core.ChangeAvailabilityRequest;
 import eu.chargetime.ocpp.model.core.ChangeConfigurationRequest;
+import eu.chargetime.ocpp.model.core.ClearCacheRequest;
+import eu.chargetime.ocpp.model.core.DataTransferRequest;
+import eu.chargetime.ocpp.model.core.GetConfigurationRequest;
+import eu.chargetime.ocpp.model.core.RemoteStartTransactionRequest;
+import eu.chargetime.ocpp.model.core.RemoteStopTransactionRequest;
 import eu.chargetime.ocpp.model.core.ResetRequest;
+import eu.chargetime.ocpp.model.core.UnlockConnectorRequest;
+import eu.chargetime.ocpp.model.firmware.DiagnosticsStatusNotificationRequest;
+import eu.chargetime.ocpp.model.firmware.FirmwareStatusNotificationRequest;
 import eu.chargetime.ocpp.model.firmware.GetDiagnosticsRequest;
-import org.jvnet.hk2.annotations.Service;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,19 +31,15 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.InputStream;
 
-@Service
 @Path("/")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class RestAPI {
     private static final Logger LOGGER = LoggerFactory.getLogger(RestAPI.class);
-    private final OcppServerService ocppServerService;
-
-    @Inject
-    public RestAPI(OcppServerService ocppServerService) {
-        this.ocppServerService = ocppServerService;
-    }
+    private final OcppServerService ocppServerService = Application.APPLICATION.getService(OcppServerService.class);
+    private final GroovyService groovyService = Application.APPLICATION.getService(GroovyService.class);
 
     @POST
     @Path("send-reset-request")
@@ -56,6 +63,72 @@ public class RestAPI {
     @Path("send-change-configuration-request")
     public Response sendChangeConfigurationRequest(ChangeConfigurationRequest changeConfigurationRequest) {
         return sendRequest(changeConfigurationRequest);
+    }
+
+    @POST
+    @Path("send-clear-cache-request")
+    public Response sendClearCacheRequest(ClearCacheRequest clearCacheRequest) {
+        return sendRequest(clearCacheRequest);
+    }
+
+    @POST
+    @Path("send-data-transfer-request")
+    public Response sendDataTransferRequest(DataTransferRequest dataTransferRequest) {
+        return sendRequest(dataTransferRequest);
+    }
+
+    @POST
+    @Path("send-get-configuration-request")
+    public Response sendGetConfigurationRequest(GetConfigurationRequest getConfigurationRequest) {
+        return sendRequest(getConfigurationRequest);
+    }
+
+    @POST
+    @Path("send-remote-start-transaction-request")
+    public Response sendRemoteStartTransactionRequest(RemoteStartTransactionRequest remoteStartTransactionRequest) {
+        return sendRequest(remoteStartTransactionRequest);
+    }
+
+    @POST
+    @Path("send-remote-stop-transaction-request")
+    public Response sendRemoteStopTransactionRequest(RemoteStopTransactionRequest remoteStopTransactionRequest) {
+        return sendRequest(remoteStopTransactionRequest);
+    }
+
+
+    @POST
+    @Path("send-unlock-connector-request")
+    public Response sendUnlockConnectorRequest(UnlockConnectorRequest unlockConnectorRequest) {
+        return sendRequest(unlockConnectorRequest);
+    }
+
+    @POST
+    @Path("send-diagnostics-status-notification-request")
+    public Response sendDiagnosticsStatusNotificationRequest(DiagnosticsStatusNotificationRequest diagnosticsStatusNotificationRequest) {
+        return sendRequest(diagnosticsStatusNotificationRequest);
+    }
+
+    @POST
+    @Path("send-firmware-status-notification-request")
+    public Response sendFirmwareStatusNotificationRequest(FirmwareStatusNotificationRequest firmwareStatusNotificationRequest) {
+        return sendRequest(firmwareStatusNotificationRequest);
+    }
+
+    @POST
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Path("upload-confirmation-supplier")
+    public Response uploadConfirmationSupplier(@FormDataParam("file") InputStream uploadedInputStream,
+                                               @FormDataParam("file") FormDataContentDisposition fileDetail) {
+        if (uploadedInputStream == null || fileDetail == null) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        try {
+            groovyService.uploadGroovyScript(uploadedInputStream, fileDetail.getFileName());
+            return Response.ok().build();
+        } catch (Exception e) {
+            LOGGER.error("Could not upload confirmation supplier", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), e.getMessage()).build();
+        }
     }
 
     private Response sendRequest(Request request) {
