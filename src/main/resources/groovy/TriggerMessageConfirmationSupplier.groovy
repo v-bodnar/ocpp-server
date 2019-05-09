@@ -1,7 +1,6 @@
 package com.omb.ocpp.groovy
 
-
-import com.omb.ocpp.gui.GuiApplication
+import com.omb.ocpp.gui.Application
 import com.omb.ocpp.server.OcppServerService
 import eu.chargetime.ocpp.JSONCommunicator
 import eu.chargetime.ocpp.model.SessionInformation
@@ -14,7 +13,7 @@ import org.slf4j.LoggerFactory
 class TriggerMessageConfirmationSupplier implements ConfirmationSupplier<TriggerMessageRequest, TriggerMessageConfirmation> {
     private static final Logger LOGGER = LoggerFactory.getLogger(TriggerMessageConfirmationSupplier.class)
     private static final JSONCommunicator jsonCommunicator = new JSONCommunicator(null)
-    private final OcppServerService ocppServerService = GuiApplication.APPLICATION.getService(OcppServerService.class)
+    private final OcppServerService ocppServerService = Application.APPLICATION.getService(OcppServerService.class)
 
     @Override
     TriggerMessageConfirmation getConfirmation(UUID sessionUuid, TriggerMessageRequest request) {

@@ -1,7 +1,6 @@
 package com.omb.ocpp.gui;
 
 import com.omb.ocpp.groovy.GroovyService;
-import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.TabPane;
@@ -9,19 +8,10 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import org.glassfish.hk2.api.ServiceLocator;
-import org.glassfish.hk2.utilities.ServiceLocatorUtilities;
 
-public class GuiApplication extends Application {
-    public static GuiApplication APPLICATION;
-    private final ServiceLocator applicationContext = ServiceLocatorUtilities.bind(new ApplicationBinder());
-    private final GroovyService groovyService = applicationContext.getService(GroovyService.class);
-
-    public GuiApplication() {
-        super();
-        synchronized (GuiApplication.class) {
-            APPLICATION = this;
-        }
-    }
+public class GuiApplication extends javafx.application.Application {
+    private final ServiceLocator applicationContext = Application.APPLICATION.getApplicationContext();
+    private final GroovyService groovyService = Application.APPLICATION.getService(GroovyService.class);
 
     public static void main(String[] args) {
         launch();
@@ -53,13 +43,5 @@ public class GuiApplication extends Application {
         primaryStage.setTitle("Ocpp Server");
         primaryStage.setScene(scene);
         primaryStage.show();
-    }
-
-    private ServiceLocator getApplicationContext() {
-        return applicationContext;
-    }
-
-    public <T> T getService(Class<T> clazz) {
-        return getApplicationContext().getService(clazz);
     }
 }

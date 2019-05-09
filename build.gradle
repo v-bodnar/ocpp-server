@@ -22,7 +22,7 @@ javafx {
 mainClassName='com.omb.ocpp.gui.GuiApplication'
 jar {
     manifest {
-        attributes 'Main-Class': 'com.omb.ocpp.gui.Launcher'
+        attributes 'Main-Class': 'com.omb.ocpp.gui.Application'
     }
     from {
         configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
@@ -54,6 +54,7 @@ dependencies {
     compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.9.4'
 
     compile group: 'org.codehaus.groovy', name: 'groovy-all', version: '3.0.0-alpha-4'
+    compile group: 'commons-cli', name: 'commons-cli', version: '1.4'
 
     compile "org.openjfx:javafx-base:$javafx.version:${platform}"
     compile "org.openjfx:javafx-graphics:$javafx.version:${platform}"

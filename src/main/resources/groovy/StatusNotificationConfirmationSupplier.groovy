@@ -1,6 +1,6 @@
 package com.omb.ocpp.groovy
 
-
+import com.omb.ocpp.gui.Application
 import com.omb.ocpp.gui.GuiApplication
 import com.omb.ocpp.server.OcppServerService
 import eu.chargetime.ocpp.JSONCommunicator
@@ -14,7 +14,7 @@ class StatusNotificationConfirmationSupplier implements ConfirmationSupplier<Sta
         StatusNotificationConfirmation> {
     private static final Logger LOGGER = LoggerFactory.getLogger(StatusNotificationConfirmationSupplier.class)
     private static final JSONCommunicator jsonCommunicator = new JSONCommunicator(null)
-    private final OcppServerService ocppServerService = GuiApplication.APPLICATION.getService(OcppServerService.class)
+    private final OcppServerService ocppServerService = Application.APPLICATION.getService(OcppServerService.class)
 
     @Override
     StatusNotificationConfirmation getConfirmation(UUID sessionUuid, StatusNotificationRequest request) {

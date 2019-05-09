@@ -2,7 +2,7 @@ package com.omb.ocpp.groovy
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
-import com.omb.ocpp.gui.GuiApplication
+import com.omb.ocpp.gui.Application
 import com.omb.ocpp.server.OcppServerService
 import eu.chargetime.ocpp.JSONCommunicator
 import eu.chargetime.ocpp.model.SessionInformation
@@ -19,7 +19,7 @@ import java.time.format.DateTimeFormatter
 class DataTransferConfirmationSupplier implements ConfirmationSupplier<DataTransferRequest, DataTransferConfirmation> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DataTransferConfirmationSupplier.class)
     private static final JSONCommunicator jsonCommunicator = new JSONCommunicator(null)
-    private final OcppServerService ocppServerService = GuiApplication.APPLICATION.getService(OcppServerService.class)
+    private final OcppServerService ocppServerService = Application.APPLICATION.getService(OcppServerService.class)
 
     @Override
     DataTransferConfirmation getConfirmation(UUID sessionUuid, DataTransferRequest request) {

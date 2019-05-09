@@ -58,7 +58,7 @@ class ServerTab {
         VBox vBox = new VBox();
         vBox.setSpacing(10);
         vBox.setPadding(new Insets(10));
-        vBox.getChildren().addAll(uploadConfirmationSupplierButton, reloadGroovyButton);
+        vBox.getChildren().addAll(reloadGroovyButton);
         tab.setContent(vBox);
 
         return tab;

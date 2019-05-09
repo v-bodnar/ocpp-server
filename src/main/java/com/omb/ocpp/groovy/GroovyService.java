@@ -68,21 +68,22 @@ public class GroovyService {
         //FIXME ugly warkaround for problem with getting resources from jar
         final URI uri = Optional.of(innerResourceFolderUrl.toURI())
                 .orElseThrow(() -> new IOException(String.format("Could not create URI to file %s", innerResourceFolderUrl)));
-        final Path innerResourceFolder;
         if (uri.toString().contains("!")) {
             final String[] array = uri.toString().split("!");
-            try (final FileSystem fs = FileSystems.newFileSystem(URI.create(array[0]), new HashMap<>())) {
-                innerResourceFolder = fs.getPath(array[1]);
+            try (final FileSystem fs = FileSystems.newFileSystem(URI.create(array[0]), new HashMap<>());
+                 Stream<Path> stream = Files.walk(fs.getPath(array[1]))) {
+                stream.filter(path -> path.toString().endsWith("ConfirmationSupplier.groovy") && Files.isRegularFile(path))
+                        .forEach(path -> createGroovyFile(path,
+                                Paths.get(SCRIPTS_FOLDER.toString(), path.getFileName().toString())));
             }
         } else {
-            innerResourceFolder = Paths.get(uri);
+            try (Stream<Path> stream = Files.walk(Paths.get(uri))) {
+                stream.filter(path -> path.toString().endsWith("ConfirmationSupplier.groovy") && Files.isRegularFile(path))
+                        .forEach(path -> createGroovyFile(path,
+                                Paths.get(SCRIPTS_FOLDER.toString(), path.getFileName().toString())));
+            }
         }
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        try (Stream<Path> stream = Files.walk(innerResourceFolder)) {
-            stream.filter(path -> path.toString().endsWith("ConfirmationSupplier.groovy") && Files.isRegularFile(path))
-                    .forEach(path -> createGroovyFile(path,
-                            Paths.get(SCRIPTS_FOLDER.toString(), path.getFileName().toString())));
-        }
     }
 
     private void createGroovyFile(Path source, Path destination) {
