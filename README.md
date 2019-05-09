@@ -18,7 +18,7 @@ usage:
 gradle clean build  
 java build/libs/ocpp-server-0.1.jar <args>  
  -h,--help  print this message  
- -nogui,--nogui  indicates that application should be started without GUI.  
+ -nogui,--nogui  indicates that application should be started dsfdsthout GUI.  
  -ip,--ip <arg>  the ip on which server will accept OCPP and REST connections, default:127.0.0.1, works in combination with -nogui  
  -ocppPort,--ocppPort <arg>  port on which OCPP server will acceptconnections, default:8887, works incombination with -nogui  
  --restPort <arg>  port on which REST server will acceptconnections, default:9090, works incombination with -nogui  
@@ -82,3 +82,14 @@ Rest api:
     public Response uploadConfirmationSupplier(@FormDataParam("file") InputStream uploadedInputStream,
                                                @FormDataParam("file") FormDataContentDisposition fileDetail)
 
+
+
+
+OCPP Server can work with SSL Context.
+If we want to have SSL on we should add file to ${LITHOS_HOME}\ocpp\ssl\ssl.properties with content:
+
+keystore.password=OCPPCaPass
+keystore.protocol=TLSv1.2
+keystore.path=C:\\Users\\plmazeb\\Tools\\OCPP-PKI_20190213\\keystores\\ocppCsSrvKeystore.jks
+
+If file ssl.properties not exists Server run without any ssl context

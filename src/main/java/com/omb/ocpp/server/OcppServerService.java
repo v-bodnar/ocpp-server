@@ -7,10 +7,13 @@ import eu.chargetime.ocpp.JSONServer;
 import eu.chargetime.ocpp.NotConnectedException;
 import eu.chargetime.ocpp.OccurenceConstraintException;
 import eu.chargetime.ocpp.ServerEvents;
+import eu.chargetime.ocpp.JSONConfiguration;
 import eu.chargetime.ocpp.UnsupportedFeatureException;
 import eu.chargetime.ocpp.feature.profile.ClientFirmwareManagementProfile;
 import eu.chargetime.ocpp.feature.profile.ClientRemoteTriggerProfile;
 import eu.chargetime.ocpp.feature.profile.Profile;
+import eu.chargetime.ocpp.wss.BaseWssFactoryBuilder;
+import eu.chargetime.ocpp.wss.WssFactoryBuilder;
 import eu.chargetime.ocpp.feature.profile.ServerCoreProfile;
 import eu.chargetime.ocpp.model.Request;
 import eu.chargetime.ocpp.model.SessionInformation;
@@ -23,12 +26,25 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.KeyStore;
+import java.util.*;
 
 import static com.omb.ocpp.gui.StubRequestsFactory.toJson;
 
 @Service
 public class OcppServerService {
     private static final Logger LOGGER = LoggerFactory.getLogger(OcppServerService.class);
+
+    private static final String LITHOS_HOME = Optional.ofNullable(System.getenv("LITHOS_HOME")).orElse("/home/bmterra/lithos");
+    private static final Path SSL_KEYSTORE_FOLDER = Paths.get(LITHOS_HOME, "ocpp", "ssl", "ssl.properties");
 
     private Map<UUID, SessionInformation> sessionList = new HashMap<>();
     private SessionsListener sessionsListener = new StubSessionListener();
@@ -52,7 +68,7 @@ public class OcppServerService {
             LOGGER.warn("Server already created, no actions will be performed");
             return;
         }
-        server = new JSONServer(coreProfile);
+        server = initializeJsonServer();
         server.addFeatureProfile(firmwareProfile);
         server.addFeatureProfile(remoteTriggerProfile);
 
@@ -124,5 +140,49 @@ public class OcppServerService {
 
     public Optional<SessionInformation> getSessionInformation(UUID sessionUuid) {
         return Optional.ofNullable(sessionList.get(sessionUuid));
+    }
+
+    private JSONServer initializeJsonServer() {
+        try {
+            if (hasSslKeystoreConfig()) {
+                SslKeystoreConfig sslKeystoreConfig = getSslKeystoreConfig();
+                SSLContext sslContext = initializeSslContextWithKeystore(sslKeystoreConfig);
+                WssFactoryBuilder wssFactoryBuilder = BaseWssFactoryBuilder.builder().ciphers(sslKeystoreConfig.getKeystoreCiphers()).sslContext(sslContext);
+                return new JSONServer(coreProfile, wssFactoryBuilder, JSONConfiguration.get());
+            }
+            return new JSONServer(coreProfile);
+        } catch (Exception e) {
+            LOGGER.error("Error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private boolean hasSslKeystoreConfig() {
+        return SSL_KEYSTORE_FOLDER.toFile().exists();
+    }
+
+    public SslKeystoreConfig getSslKeystoreConfig() throws IOException {
+        File keystoreFile = SSL_KEYSTORE_FOLDER.toFile();
+        try (InputStream is = new FileInputStream(keystoreFile)) {
+            Properties properties = new Properties();
+            properties.load(is);
+            return SslKeystoreConfig.loadFromProperties(properties);
+        }
+    }
+
+    private SSLContext initializeSslContextWithKeystore(SslKeystoreConfig sslKeystoreConfig) throws Exception {
+
+        SSLContext context = SSLContext.getInstance(sslKeystoreConfig.getKeystoreProtocol());
+        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+        KeyStore keyStore = KeyStore.getInstance("JKS");
+
+        try (InputStream is = new FileInputStream(sslKeystoreConfig.getKeystorePath().toFile().getPath())) {
+            keyStore.load(is, sslKeystoreConfig.getKeystorePassword().toCharArray());
+        }
+
+        keyManagerFactory.init(keyStore, sslKeystoreConfig.getKeystorePassword().toCharArray());
+        context.init(keyManagerFactory.getKeyManagers(), null, null);
+
+        return context;
     }
 }
