@@ -10,7 +10,6 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,17 +22,18 @@ import java.util.Locale;
 class ServerTab {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommunicatorTab.class);
     private final GroovyService groovyService;
+    private final TableView<ConfirmationSupplier> tableView = new TableView<>();
 
     ServerTab(ServiceLocator applicationContext) {
         this.groovyService = applicationContext.getService(GroovyService.class);
+        this.groovyService.setGroovyCacheChangedListener(aVoid -> refreshTable());
     }
 
-    Tab constructTab(Stage primaryStage) {
+    Tab constructTab() {
         Tab tab = new Tab();
         tab.setText("G Server");
         tab.setClosable(false);
 
-        TableView tableView = new TableView();
         tableView.setItems(FXCollections.observableArrayList(groovyService.getConfirmationSuppliers()));
 
         TableColumn<ConfirmationSupplier, String> classNameColumn = new TableColumn<>("Class Name");
@@ -62,8 +62,6 @@ class ServerTab {
         Button reloadGroovyButton = new Button("Reload groovy scripts");
         reloadGroovyButton.setOnAction(event -> {
             groovyService.reloadGroovyFiles();
-            tableView.setItems(FXCollections.observableArrayList(groovyService.getConfirmationSuppliers()));
-            tableView.refresh();
         });
         reloadGroovyButton.setMinWidth(200);
         reloadGroovyButton.setMaxWidth(200);
@@ -75,6 +73,11 @@ class ServerTab {
         tab.setContent(vBox);
 
         return tab;
+    }
+
+    private void refreshTable() {
+        tableView.setItems(FXCollections.observableArrayList(groovyService.getConfirmationSuppliers()));
+        tableView.refresh();
     }
 
 }
