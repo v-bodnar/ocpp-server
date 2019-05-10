@@ -12,12 +12,14 @@ import eu.chargetime.ocpp.model.core.DataTransferStatus
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import java.time.Instant
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 class DataTransferConfirmationSupplier implements ConfirmationSupplier<DataTransferRequest, DataTransferConfirmation> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DataTransferConfirmationSupplier.class)
+    private static final Instant CLASS_LOAD_DATE = Instant.now()
     private static final JSONCommunicator jsonCommunicator = new JSONCommunicator(null)
     private final OcppServerService ocppServerService = Application.APPLICATION.getService(OcppServerService.class)
 
@@ -83,5 +85,10 @@ class DataTransferConfirmationSupplier implements ConfirmationSupplier<DataTrans
         confirmation.setData(getPriceConfirmation.toString());
         confirmation.setStatus(DataTransferStatus.Accepted);
         return confirmation
+    }
+
+    @Override
+    Instant getClassLoadDate(){
+        return CLASS_LOAD_DATE;
     }
 }

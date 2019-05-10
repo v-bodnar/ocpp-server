@@ -24,8 +24,10 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -192,6 +194,10 @@ public class GroovyService {
             LOGGER.error("Error in groovy confirmation supplier", e);
             return null;
         }
+    }
+
+    public List<? extends ConfirmationSupplier> getConfirmationSuppliers() {
+        return new ArrayList<>(confirmationSuppliers.values());
     }
 
 }

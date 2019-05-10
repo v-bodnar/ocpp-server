@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 
+import static com.omb.ocpp.server.handler.CoreEventHandler.RECEIVED_REQUEST;
+
 @Service
 public class FirmwareManagementEventHandler implements ClientFirmwareManagementEventHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(FirmwareManagementEventHandler.class);
@@ -26,13 +28,13 @@ public class FirmwareManagementEventHandler implements ClientFirmwareManagementE
 
     @Override
     public GetDiagnosticsConfirmation handleGetDiagnosticsRequest(GetDiagnosticsRequest request) {
-        LOGGER.debug("{} - {}", request.getClass().getSimpleName(), jsonCommunicator.packPayload(request));
+        LOGGER.debug(RECEIVED_REQUEST, request.getClass().getSimpleName(), jsonCommunicator.packPayload(request));
         return groovyService.getConfirmation(null, request);
     }
 
     @Override
     public UpdateFirmwareConfirmation handleUpdateFirmwareRequest(UpdateFirmwareRequest request) {
-        LOGGER.debug("{} - {}", request.getClass().getSimpleName(), jsonCommunicator.packPayload(request));
+        LOGGER.debug(RECEIVED_REQUEST, request.getClass().getSimpleName(), jsonCommunicator.packPayload(request));
         return groovyService.getConfirmation(null, request);
     }
 }

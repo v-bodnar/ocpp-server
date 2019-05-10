@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 
+import static com.omb.ocpp.server.handler.CoreEventHandler.RECEIVED_REQUEST;
+
 @Service
 public class RemoteTriggerEventHandler implements ClientRemoteTriggerHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(RemoteTriggerEventHandler.class);
@@ -24,7 +26,7 @@ public class RemoteTriggerEventHandler implements ClientRemoteTriggerHandler {
 
     @Override
     public TriggerMessageConfirmation handleTriggerMessageRequest(TriggerMessageRequest request) {
-        LOGGER.debug("{} - {}", request.getClass().getSimpleName(), jsonCommunicator.packPayload(request));
+        LOGGER.debug(RECEIVED_REQUEST, request.getClass().getSimpleName(), jsonCommunicator.packPayload(request));
         return groovyService.getConfirmation(null, request);
     }
 
