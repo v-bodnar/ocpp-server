@@ -9,9 +9,12 @@ import eu.chargetime.ocpp.model.firmware.DiagnosticsStatusNotificationRequest
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import java.time.Instant
+
 class DiagnosticsStatusNotificationConfirmationSupplier implements ConfirmationSupplier<DiagnosticsStatusNotificationRequest,
         DiagnosticsStatusNotificationConfirmation> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DiagnosticsStatusNotificationConfirmationSupplier.class)
+    private static final Instant CLASS_LOAD_DATE = Instant.now()
     private static final JSONCommunicator jsonCommunicator = new JSONCommunicator(null)
     private final OcppServerService ocppServerService = Application.APPLICATION.getService(OcppServerService.class)
 
@@ -25,5 +28,10 @@ class DiagnosticsStatusNotificationConfirmationSupplier implements ConfirmationS
         LOGGER.debug("Responding to {} from client: {} body: {}", request.getClass().simpleName, sessionInformation
                 .identifier, jsonCommunicator.packPayload(confirmation))
         return confirmation
+    }
+
+    @Override
+    Instant getClassLoadDate(){
+        return CLASS_LOAD_DATE;
     }
 }

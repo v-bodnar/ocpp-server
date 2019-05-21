@@ -24,11 +24,15 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 @Service
@@ -39,6 +43,7 @@ public class GroovyService {
     private static final boolean USE_SCRIPTS_FOLDER = true; //set to false to debug scripts from resources
     private final Map<Class<? extends Request>, ConfirmationSupplier<Request, Confirmation>> confirmationSuppliers =
             new HashMap<>();
+    private Consumer<Void> groovyCacheChangedListener = aVoid -> LOGGER.debug("No listeners attached");
 
     private GroovyClassLoader groovyClassLoader = new GroovyClassLoader();
 
@@ -148,6 +153,7 @@ public class GroovyService {
                         && ((ParameterizedType) aClass.getGenericInterfaces()[0]).getRawType().equals(ConfirmationSupplier.class)
                 )
                 .forEach(this::putToCache);
+        groovyCacheChangedListener.accept(null);
     }
 
     public void uploadGroovyScript(InputStream inputStream, String scriptName) throws Exception {
@@ -165,6 +171,7 @@ public class GroovyService {
                     uploadedClass.getGenericInterfaces()[0] instanceof ParameterizedType
                     && ((ParameterizedType) uploadedClass.getGenericInterfaces()[0]).getRawType().equals(ConfirmationSupplier.class)) {
                 putToCache(uploadedClass);
+                    groovyCacheChangedListener.accept(null);
             } else {
                 throw new InvalidClassException(String.format("Could not load class from file %s, check that class implements " +
                         "ConfirmationSupplier<REQUEST extends Request, RESPONSE extends Confirmation>", destination));
@@ -186,7 +193,17 @@ public class GroovyService {
     public synchronized <T extends Confirmation> T getConfirmation(UUID sessionUuid, Request request) {
         try {
             return (T) Optional.ofNullable(confirmationSuppliers.get(request.getClass()))
-                    .orElse((sessionUuid1, request1) -> null)
+                    .orElse(new ConfirmationSupplier<>() {
+                        @Override
+                        public Confirmation getConfirmation(UUID sessionUuid, Request request) {
+                            return null;
+                        }
+
+                        @Override
+                        public Instant getClassLoadDate() {
+                            return Instant.now();
+                        }
+                    })
                     .getConfirmation(sessionUuid, request);
         } catch (Exception e) {
             LOGGER.error("Error in groovy confirmation supplier", e);
@@ -194,4 +211,11 @@ public class GroovyService {
         }
     }
 
+    public List<? extends ConfirmationSupplier> getConfirmationSuppliers() {
+        return new ArrayList<>(confirmationSuppliers.values());
+    }
+
+    public void setGroovyCacheChangedListener(Consumer<Void> groovyCacheChangedListener) {
+        this.groovyCacheChangedListener = groovyCacheChangedListener;
+    }
 }

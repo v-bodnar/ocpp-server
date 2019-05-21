@@ -15,6 +15,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +50,7 @@ class GeneralTab {
         this.webServer = applicationContext.getService(WebServer.class);
     }
 
-    Tab constructTab() {
+    Tab constructTab(Stage primaryStage) {
         Tab tab = new Tab();
         tab.setText("General");
         tab.setClosable(false);
@@ -59,7 +60,7 @@ class GeneralTab {
         textArea.layoutBoundsProperty().addListener((observable, oldValue, newValue) -> {
             if (textAreaHeight != newValue.getHeight()) {
                 textAreaHeight = newValue.getHeight();
-                textArea.setPrefHeight(textArea.getLayoutBounds().getHeight() + 20); // +20 is for paddings
+                textArea.setPrefHeight(primaryStage.getHeight() + 20); // +20 is for paddings
             }
         });
 

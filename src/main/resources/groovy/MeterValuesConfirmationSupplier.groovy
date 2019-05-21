@@ -9,8 +9,11 @@ import eu.chargetime.ocpp.model.core.MeterValuesRequest
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import java.time.Instant
+
 class MeterValuesConfirmationSupplier implements ConfirmationSupplier<MeterValuesRequest, MeterValuesConfirmation> {
     private static final Logger LOGGER = LoggerFactory.getLogger(MeterValuesConfirmationSupplier.class)
+    private static final Instant CLASS_LOAD_DATE = Instant.now()
     private static final JSONCommunicator jsonCommunicator = new JSONCommunicator(null)
     private final OcppServerService ocppServerService = Application.APPLICATION.getService(OcppServerService.class)
 
@@ -22,5 +25,10 @@ class MeterValuesConfirmationSupplier implements ConfirmationSupplier<MeterValue
         LOGGER.debug("Responding to {} from client: {} body: {}", request.getClass().simpleName, sessionInformation
                 .identifier, jsonCommunicator.packPayload(confirmation))
         return confirmation
+    }
+
+    @Override
+    Instant getClassLoadDate(){
+        return CLASS_LOAD_DATE;
     }
 }
