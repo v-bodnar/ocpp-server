@@ -47,7 +47,7 @@ public class WebServer {
     }
 
     public boolean isRunning() {
-        return restApiServer.isRunning();
+        return restApiServer != null && restApiServer.isRunning();
     }
 
     public void shutDown() {
