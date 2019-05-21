@@ -15,6 +15,8 @@ import org.glassfish.hk2.utilities.ServiceLocatorUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
+
 public class Application {
     private static final Logger LOGGER = LoggerFactory.getLogger(Application.class);
     private static final String NO_GUI_ID = "nogui";
@@ -29,11 +31,18 @@ public class Application {
     private static int restPort;
 
     private final ServiceLocator applicationContext = ServiceLocatorUtilities.bind(new ApplicationBinder());
-    private final GroovyService groovyService = applicationContext.getService(GroovyService.class);
-    private final OcppServerService ocppServerService = applicationContext.getService(OcppServerService.class);
-    private final WebServer webServer = applicationContext.getService(WebServer.class);
+
+    @Inject
+    private GroovyService groovyService;
+
+    @Inject
+    private OcppServerService ocppServerService;
+
+    @Inject
+    private WebServer webServer;
 
     private Application() {
+        applicationContext.inject(this);
     }
 
     public static void main(String[] args) {
@@ -103,6 +112,4 @@ public class Application {
     public <T> T getService(Class<T> clazz) {
         return getApplicationContext().getService(clazz);
     }
-
-
 }
