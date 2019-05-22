@@ -9,6 +9,8 @@ import eu.chargetime.ocpp.OccurenceConstraintException;
 import eu.chargetime.ocpp.ServerEvents;
 import eu.chargetime.ocpp.UnsupportedFeatureException;
 import eu.chargetime.ocpp.feature.profile.Profile;
+import eu.chargetime.ocpp.wss.BaseWssFactoryBuilderWrapper;
+import eu.chargetime.ocpp.wss.WssFactoryBuilder;
 import eu.chargetime.ocpp.feature.profile.ServerCoreProfile;
 import eu.chargetime.ocpp.feature.profile.ServerFirmwareManagementProfile;
 import eu.chargetime.ocpp.feature.profile.ServerLocalAuthListProfile;
@@ -46,6 +48,7 @@ public class OcppServerService {
     private static final String LITHOS_HOME = Optional.ofNullable(System.getenv("LITHOS_HOME")).orElse("/home/bmterra/lithos");
     private static final Path SSL_KEYSTORE_FOLDER = Paths.get(LITHOS_HOME, "ocpp", "ssl", "ssl.properties");
 
+    private JSONServer server;
     private Map<UUID, SessionInformation> sessionList = new HashMap<>();
     private SessionsListener sessionsListener = new StubSessionListener();
     private ServerCoreProfile coreProfile;
@@ -61,8 +64,6 @@ public class OcppServerService {
         this.localAuthListProfile = new ServerLocalAuthListProfile();
     }
 
-    private JSONServer server;
-
     public void start(String ip, String port) {
         LOGGER.info("Starting OCPP Server");
         if (server != null) {
@@ -72,7 +73,6 @@ public class OcppServerService {
         server = initializeJsonServer();
         server.addFeatureProfile(firmwareProfile);
         server.addFeatureProfile(remoteTriggerProfile);
-        server.addFeatureProfile(localAuthListProfile);
 
         LOGGER.info("Ocpp server ip: {}, port: {}", ip, port);
         server.open(ip, Integer.parseInt(port), new ServerEvents() {
@@ -149,7 +149,7 @@ public class OcppServerService {
             if (hasSslKeystoreConfig()) {
                 SslKeystoreConfig sslKeystoreConfig = getSslKeystoreConfig();
                 SSLContext sslContext = initializeSslContextWithKeystore(sslKeystoreConfig);
-                WssFactoryBuilder wssFactoryBuilder = BaseWssFactoryBuilder.builder().ciphers(sslKeystoreConfig.getKeystoreCiphers()).sslContext(sslContext);
+                WssFactoryBuilder wssFactoryBuilder = BaseWssFactoryBuilderWrapper.builder(sslKeystoreConfig).ciphers(sslKeystoreConfig.getKeystoreCiphers()).sslContext(sslContext);
                 return new JSONServer(coreProfile, wssFactoryBuilder, JSONConfiguration.get());
             }
             return new JSONServer(coreProfile);
