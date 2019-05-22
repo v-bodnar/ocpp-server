@@ -9,15 +9,13 @@ import eu.chargetime.ocpp.OccurenceConstraintException;
 import eu.chargetime.ocpp.ServerEvents;
 import eu.chargetime.ocpp.UnsupportedFeatureException;
 import eu.chargetime.ocpp.feature.profile.Profile;
-import eu.chargetime.ocpp.wss.BaseWssFactoryBuilderWrapper;
-import eu.chargetime.ocpp.wss.WssFactoryBuilder;
 import eu.chargetime.ocpp.feature.profile.ServerCoreProfile;
 import eu.chargetime.ocpp.feature.profile.ServerFirmwareManagementProfile;
 import eu.chargetime.ocpp.feature.profile.ServerLocalAuthListProfile;
 import eu.chargetime.ocpp.feature.profile.ServerRemoteTriggerProfile;
 import eu.chargetime.ocpp.model.Request;
 import eu.chargetime.ocpp.model.SessionInformation;
-import eu.chargetime.ocpp.wss.BaseWssFactoryBuilder;
+import eu.chargetime.ocpp.wss.BaseWssFactoryBuilderWrapper;
 import eu.chargetime.ocpp.wss.WssFactoryBuilder;
 import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
@@ -73,6 +71,7 @@ public class OcppServerService {
         server = initializeJsonServer();
         server.addFeatureProfile(firmwareProfile);
         server.addFeatureProfile(remoteTriggerProfile);
+        server.addFeatureProfile(localAuthListProfile);
 
         LOGGER.info("Ocpp server ip: {}, port: {}", ip, port);
         server.open(ip, Integer.parseInt(port), new ServerEvents() {
