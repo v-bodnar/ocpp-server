@@ -15,8 +15,9 @@ Groovy files will be created under path: LITHOS_HOME/ocpp/groovy.
 LITHOS_HOME - environment variable  
 
 usage:   
-gradle clean build  
-java build/libs/ocpp-server-0.1.jar <args>  
+gradle clean build
+
+java -jar build/libs/ocpp-server-0.1.jar <args>  
  -h,--help  print this message  
  -nogui,--nogui  indicates that application should be started dsfdsthout GUI.  
  -ip,--ip <arg>  the ip on which server will accept OCPP and REST connections, default:127.0.0.1, works in combination with -nogui  
@@ -24,11 +25,10 @@ java build/libs/ocpp-server-0.1.jar <args>
  --restPort <arg>  port on which REST server will acceptconnections, default:9090, works incombination with -nogui  
   
 Rest api:  
-	@Produces(MediaType.APPLICATION_JSON)  
-	@Consumes(MediaType.APPLICATION_JSON)  
-	@Path("/")  
-	
-	  @Path("send-reset-request")  
+    @Produces(MediaType.APPLICATION_JSON)  
+    @Consumes(MediaType.APPLICATION_JSON)  
+    @Path("/")  
+    @Path("send-reset-request")  
     public Response sendResetRequest(ResetRequest resetRequest)  
   
     @POST  
