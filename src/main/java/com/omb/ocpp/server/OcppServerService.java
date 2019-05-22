@@ -2,30 +2,26 @@ package com.omb.ocpp.server;
 
 import com.omb.ocpp.server.handler.CoreEventHandler;
 import com.omb.ocpp.server.handler.FirmwareManagementEventHandler;
-import com.omb.ocpp.server.handler.RemoteTriggerEventHandler;
+import eu.chargetime.ocpp.JSONConfiguration;
 import eu.chargetime.ocpp.JSONServer;
 import eu.chargetime.ocpp.NotConnectedException;
 import eu.chargetime.ocpp.OccurenceConstraintException;
 import eu.chargetime.ocpp.ServerEvents;
-import eu.chargetime.ocpp.JSONConfiguration;
 import eu.chargetime.ocpp.UnsupportedFeatureException;
-import eu.chargetime.ocpp.feature.profile.ClientFirmwareManagementProfile;
-import eu.chargetime.ocpp.feature.profile.ClientRemoteTriggerProfile;
 import eu.chargetime.ocpp.feature.profile.Profile;
-import eu.chargetime.ocpp.wss.BaseWssFactoryBuilder;
-import eu.chargetime.ocpp.wss.WssFactoryBuilder;
 import eu.chargetime.ocpp.feature.profile.ServerCoreProfile;
+import eu.chargetime.ocpp.feature.profile.ServerFirmwareManagementProfile;
+import eu.chargetime.ocpp.feature.profile.ServerLocalAuthListProfile;
+import eu.chargetime.ocpp.feature.profile.ServerRemoteTriggerProfile;
 import eu.chargetime.ocpp.model.Request;
 import eu.chargetime.ocpp.model.SessionInformation;
+import eu.chargetime.ocpp.wss.BaseWssFactoryBuilder;
+import eu.chargetime.ocpp.wss.WssFactoryBuilder;
 import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import java.io.File;
@@ -35,7 +31,11 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyStore;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.UUID;
 
 import static com.omb.ocpp.gui.StubRequestsFactory.toJson;
 
@@ -51,13 +51,14 @@ public class OcppServerService {
     private ServerCoreProfile coreProfile;
     private Profile firmwareProfile;
     private Profile remoteTriggerProfile;
+    private Profile localAuthListProfile;
 
     @Inject
-    public OcppServerService(FirmwareManagementEventHandler firmwareManagementEventHandler,
-                             RemoteTriggerEventHandler remoteTriggerEventHandler, CoreEventHandler coreEventHandler) {
+    public OcppServerService(FirmwareManagementEventHandler firmwareManagementEventHandler, CoreEventHandler coreEventHandler) {
         this.coreProfile = new ServerCoreProfile(coreEventHandler);
-        this.firmwareProfile = new ClientFirmwareManagementProfile(firmwareManagementEventHandler);
-        this.remoteTriggerProfile = new ClientRemoteTriggerProfile(remoteTriggerEventHandler);
+        this.firmwareProfile = new ServerFirmwareManagementProfile(firmwareManagementEventHandler);
+        this.remoteTriggerProfile = new ServerRemoteTriggerProfile();
+        this.localAuthListProfile = new ServerLocalAuthListProfile();
     }
 
     private JSONServer server;
@@ -71,6 +72,7 @@ public class OcppServerService {
         server = initializeJsonServer();
         server.addFeatureProfile(firmwareProfile);
         server.addFeatureProfile(remoteTriggerProfile);
+        server.addFeatureProfile(localAuthListProfile);
 
         LOGGER.info("Ocpp server ip: {}, port: {}", ip, port);
         server.open(ip, Integer.parseInt(port), new ServerEvents() {
@@ -119,7 +121,7 @@ public class OcppServerService {
             server.send(sessionUUID.orElseThrow(() -> new IllegalArgumentException(String.format("Could not find " +
                     "client by session token: %s", sessionToken))), request);
         } catch (OccurenceConstraintException | UnsupportedFeatureException | NotConnectedException e) {
-            LOGGER.error("Could not send message: {} to {}", toJson(request), sessionToken);
+            LOGGER.error(String.format("Could not send message: %s to %s", toJson(request), sessionToken), e);
         }
 
     }
