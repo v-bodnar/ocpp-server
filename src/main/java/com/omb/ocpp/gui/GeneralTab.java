@@ -31,9 +31,11 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Pattern;
 
 class GeneralTab {
     private static final Logger LOGGER = LoggerFactory.getLogger(GeneralTab.class);
+    private static final Pattern IP_ADDRESS_PATTERN = Pattern.compile("((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(?:\\.|$)){4}");
     private static final int DEFAULT_OCPP_PORT = 8887;
 
     private final Label serverState = new Label("Stopped");
@@ -157,7 +159,9 @@ class GeneralTab {
             Enumeration ee = n.getInetAddresses();
             while (ee.hasMoreElements()) {
                 InetAddress i = (InetAddress) ee.nextElement();
-                availableIpAddresses.add(i.getHostAddress());
+                if (IP_ADDRESS_PATTERN.matcher(i.getHostAddress()).matches()) {
+                    availableIpAddresses.add(i.getHostAddress());
+                }
             }
         }
         return availableIpAddresses;
