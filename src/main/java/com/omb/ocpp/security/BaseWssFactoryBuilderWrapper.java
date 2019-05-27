@@ -1,6 +1,7 @@
-package eu.chargetime.ocpp.wss;
+package com.omb.ocpp.security;
 
-import com.omb.ocpp.server.SslKeystoreConfig;
+import com.omb.ocpp.server.SslKeyStoreConfig;
+import eu.chargetime.ocpp.wss.WssFactoryBuilder;
 import org.java_websocket.WebSocketServerFactory;
 
 import javax.net.ssl.SSLContext;
@@ -9,15 +10,15 @@ import java.util.List;
 
 public class BaseWssFactoryBuilderWrapper implements WssFactoryBuilder {
 
-    private final SslKeystoreConfig sslKeystoreConfig;
+    private final SslKeyStoreConfig sslKeystoreConfig;
     private List<String> ciphers = new ArrayList<>();
     private SSLContext sslContext;
 
-    private BaseWssFactoryBuilderWrapper(SslKeystoreConfig sslKeystoreConfig) {
+    private BaseWssFactoryBuilderWrapper(SslKeyStoreConfig sslKeystoreConfig) {
         this.sslKeystoreConfig = sslKeystoreConfig;
     }
 
-    public static BaseWssFactoryBuilderWrapper builder(SslKeystoreConfig sslKeystoreConfig) {
+    public static BaseWssFactoryBuilderWrapper builder(SslKeyStoreConfig sslKeystoreConfig) {
         return new BaseWssFactoryBuilderWrapper(sslKeystoreConfig);
     }
 

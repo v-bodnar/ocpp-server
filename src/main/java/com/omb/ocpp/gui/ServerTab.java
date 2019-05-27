@@ -11,8 +11,6 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.VBox;
 import org.glassfish.hk2.api.ServiceLocator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.ParameterizedType;
 import java.time.ZoneId;
@@ -20,7 +18,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 class ServerTab {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CommunicatorTab.class);
     private final GroovyService groovyService;
     private final TableView<ConfirmationSupplier> tableView = new TableView<>();
 
@@ -60,9 +57,7 @@ class ServerTab {
         tableView.getColumns().addAll(classNameColumn, confirmationName, dateCol);
 
         Button reloadGroovyButton = new Button("Reload groovy scripts");
-        reloadGroovyButton.setOnAction(event -> {
-            groovyService.reloadGroovyFiles();
-        });
+        reloadGroovyButton.setOnAction(event -> groovyService.reloadGroovyFiles());
         reloadGroovyButton.setMinWidth(200);
         reloadGroovyButton.setMaxWidth(200);
 

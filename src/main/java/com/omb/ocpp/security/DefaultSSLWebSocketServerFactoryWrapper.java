@@ -1,6 +1,6 @@
-package eu.chargetime.ocpp.wss;
+package com.omb.ocpp.security;
 
-import com.omb.ocpp.server.SslKeystoreConfig;
+import com.omb.ocpp.server.SslKeyStoreConfig;
 import org.java_websocket.SSLSocketChannel2;
 import org.java_websocket.server.DefaultSSLWebSocketServerFactory;
 
@@ -16,9 +16,9 @@ import java.util.List;
 
 public class DefaultSSLWebSocketServerFactoryWrapper extends DefaultSSLWebSocketServerFactory {
 
-    private final SslKeystoreConfig sslKeystoreConfig;
+    private final SslKeyStoreConfig sslKeystoreConfig;
 
-    public DefaultSSLWebSocketServerFactoryWrapper(SslKeystoreConfig sslKeystoreConfig, SSLContext sslContext) {
+    public DefaultSSLWebSocketServerFactoryWrapper(SslKeyStoreConfig sslKeystoreConfig, SSLContext sslContext) {
         super(sslContext);
         this.sslKeystoreConfig = sslKeystoreConfig;
     }
@@ -26,7 +26,7 @@ public class DefaultSSLWebSocketServerFactoryWrapper extends DefaultSSLWebSocket
     @Override
     public ByteChannel wrapChannel(SocketChannel channel, SelectionKey key) throws IOException {
         SSLEngine sslEngine = sslcontext.createSSLEngine();
-        List<String> ciphers = new ArrayList<String>(Arrays.asList(sslEngine.getEnabledCipherSuites()));
+        List<String> ciphers = new ArrayList<>(Arrays.asList(sslEngine.getEnabledCipherSuites()));
         ciphers.remove("TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256");
         return createSslSocket(channel, key, ciphers);
     }

@@ -47,6 +47,7 @@ public class GuiApplication extends javafx.application.Application {
         tabPane.getTabs().add(new GeneralTab(applicationContext).constructTab(primaryStage));
         tabPane.getTabs().add(new CommunicatorTab(applicationContext).constructTab());
         tabPane.getTabs().add(new ServerTab(applicationContext).constructTab());
+        tabPane.getTabs().add(new SslTab(applicationContext).constructTab(primaryStage));
         borderPane.setCenter(tabPane);
 
         primaryStage.setOnCloseRequest(event -> {

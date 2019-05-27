@@ -7,6 +7,7 @@ import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
@@ -39,6 +40,7 @@ class GeneralTab {
     private final ComboBox<String> ipCombobox = new ComboBox<>();
     private final TextField portTextField = new TextField();
     private final Button serverButton = new Button("Start");
+    private final CheckBox sslEnabledCheckbox = new CheckBox("ssl");
 
     private final OcppServerService ocppServerService;
     private final WebServer webServer;
@@ -81,7 +83,8 @@ class GeneralTab {
                 portTextField.setText("" + DEFAULT_OCPP_PORT);
             }
         });
-        hBox.getChildren().addAll(serverState, ipCombobox, portTextField, serverButton, clearButton);
+        hBox.getChildren().addAll(serverState, ipCombobox, portTextField, sslEnabledCheckbox, serverButton,
+                clearButton);
 
         ConsoleStream console = new ConsoleStream(textArea);
         PrintStream ps = new PrintStream(console, true);
@@ -102,6 +105,7 @@ class GeneralTab {
             serverState.setText("Started");
             serverButton.setText("Stop");
             serverButton.setDisable(false);
+            sslEnabledCheckbox.setDisable(true);
             serverButton.setOnAction(event -> {
                 CompletableFuture.runAsync(ocppServerService::stop);
                 CompletableFuture.runAsync(webServer::shutDown);
@@ -113,8 +117,10 @@ class GeneralTab {
             serverState.setText("Stopped");
             serverButton.setText("Start");
             serverButton.setDisable(false);
+            sslEnabledCheckbox.setDisable(false);
             serverButton.setOnAction(event -> {
-                CompletableFuture.runAsync(() -> ocppServerService.start(ipCombobox.getValue(), portTextField.getText()));
+                CompletableFuture.runAsync(() -> ocppServerService.start(ipCombobox.getValue(),
+                        portTextField.getText(), sslEnabledCheckbox.isSelected()));
                 CompletableFuture.runAsync(() -> {
                     try {
                         webServer.startServer(9090);

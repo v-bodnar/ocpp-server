@@ -1,6 +1,6 @@
-package eu.chargetime.ocpp.wss;
+package com.omb.ocpp.security;
 
-import com.omb.ocpp.server.SslKeystoreConfig;
+import com.omb.ocpp.server.SslKeyStoreConfig;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -17,7 +17,7 @@ public class CustomSSLWebSocketServerFactoryWrapper extends DefaultSSLWebSocketS
 
     private List<String> ciphers;
 
-    public CustomSSLWebSocketServerFactoryWrapper(SslKeystoreConfig sslKeystoreConfig, SSLContext sslContext, List<String> ciphers) {
+    public CustomSSLWebSocketServerFactoryWrapper(SslKeyStoreConfig sslKeystoreConfig, SSLContext sslContext, List<String> ciphers) {
         super(sslKeystoreConfig, sslContext);
         this.ciphers = Objects.requireNonNull(ciphers);
     }
@@ -30,7 +30,7 @@ public class CustomSSLWebSocketServerFactoryWrapper extends DefaultSSLWebSocketS
          *
          * For TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 you must patch your java installation directly.
          */
-        List<String> enabledCiphers = new ArrayList<String>(Arrays.asList(sslEngine.getEnabledCipherSuites()));
+        List<String> enabledCiphers = new ArrayList<>(Arrays.asList(sslEngine.getEnabledCipherSuites()));
         enabledCiphers.retainAll(ciphers);
 
         return createSslSocket(channel, key, enabledCiphers);

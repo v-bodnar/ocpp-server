@@ -35,12 +35,14 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import static com.omb.ocpp.gui.Application.LITHOS_HOME;
+
 @Service
 public class GroovyService {
     private static final Logger LOGGER = LoggerFactory.getLogger(GroovyService.class);
-    private static final String LITHOS_HOME = Optional.ofNullable(System.getenv("LITHOS_HOME")).orElse("/home/bmterra/lithos");
     private static final Path SCRIPTS_FOLDER = Paths.get(LITHOS_HOME, "ocpp", "groovy");
     private static final boolean USE_SCRIPTS_FOLDER = true; //set to false to debug scripts from resources
+    private static final String CONFIRMATION_SUPPLIER_GROOVY_SUFFIX = "ConfirmationSupplier.groovy";
     private final Map<Class<? extends Request>, ConfirmationSupplier<Request, Confirmation>> confirmationSuppliers =
             new HashMap<>();
     private Consumer<Void> groovyCacheChangedListener = aVoid -> LOGGER.debug("No listeners attached");
@@ -77,13 +79,13 @@ public class GroovyService {
             final String[] array = uri.toString().split("!");
             try (final FileSystem fs = FileSystems.newFileSystem(URI.create(array[0]), new HashMap<>());
                  Stream<Path> stream = Files.walk(fs.getPath(array[1]))) {
-                stream.filter(path -> path.toString().endsWith("ConfirmationSupplier.groovy") && Files.isRegularFile(path))
+                stream.filter(path -> path.toString().endsWith(CONFIRMATION_SUPPLIER_GROOVY_SUFFIX) && Files.isRegularFile(path))
                         .forEach(path -> createGroovyFile(path,
                                 Paths.get(SCRIPTS_FOLDER.toString(), path.getFileName().toString())));
             }
         } else {
             try (Stream<Path> stream = Files.walk(Paths.get(uri))) {
-                stream.filter(path -> path.toString().endsWith("ConfirmationSupplier.groovy") && Files.isRegularFile(path))
+                stream.filter(path -> path.toString().endsWith(CONFIRMATION_SUPPLIER_GROOVY_SUFFIX) && Files.isRegularFile(path))
                         .forEach(path -> createGroovyFile(path,
                                 Paths.get(SCRIPTS_FOLDER.toString(), path.getFileName().toString())));
             }
@@ -130,7 +132,7 @@ public class GroovyService {
         }
 
         try (Stream<Path> stream = Files.walk(SCRIPTS_FOLDER)) {
-            stream.filter(path -> path.toString().endsWith("ConfirmationSupplier.groovy") && Files.isRegularFile(path))
+            stream.filter(path -> path.toString().endsWith(CONFIRMATION_SUPPLIER_GROOVY_SUFFIX) && Files.isRegularFile(path))
                     .forEach(path -> {
                         try {
                             Class clazz = groovyClassLoader.parseClass(path.toFile());
@@ -171,7 +173,7 @@ public class GroovyService {
                     uploadedClass.getGenericInterfaces()[0] instanceof ParameterizedType
                     && ((ParameterizedType) uploadedClass.getGenericInterfaces()[0]).getRawType().equals(ConfirmationSupplier.class)) {
                 putToCache(uploadedClass);
-                    groovyCacheChangedListener.accept(null);
+                groovyCacheChangedListener.accept(null);
             } else {
                 throw new InvalidClassException(String.format("Could not load class from file %s, check that class implements " +
                         "ConfirmationSupplier<REQUEST extends Request, RESPONSE extends Confirmation>", destination));
@@ -211,7 +213,7 @@ public class GroovyService {
         }
     }
 
-    public List<? extends ConfirmationSupplier> getConfirmationSuppliers() {
+    public List<ConfirmationSupplier> getConfirmationSuppliers() {
         return new ArrayList<>(confirmationSuppliers.values());
     }
 
