@@ -104,7 +104,7 @@ public class GroovyService {
                 LOGGER.error(String.format("Could not create scripts file %s", source.getFileName()), e);
             }
         } else if (Files.isRegularFile(source)) {
-            LOGGER.debug("File already exists {}", destination);
+            LOGGER.debug("Loading confirmation supplier {}", destination);
             loadGroovyClass(source, destination);
         }
     }
