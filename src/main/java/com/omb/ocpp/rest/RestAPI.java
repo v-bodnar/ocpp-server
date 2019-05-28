@@ -159,7 +159,7 @@ public class RestAPI {
     @GET
     @Path("download-server-cert")
     public Response downloadServerCertificate() {
-        Optional<Certificate> certificate = KeyChainGenerator.getCertificate(sslKeyStoreConfig);
+        Optional<Certificate> certificate = KeyChainGenerator.getServerCertificate(sslKeyStoreConfig);
         if (certificate.isPresent()) {
             StreamingOutput fileStream = output -> {
                 try {

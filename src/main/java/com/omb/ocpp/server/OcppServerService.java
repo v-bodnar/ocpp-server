@@ -1,5 +1,6 @@
 package com.omb.ocpp.server;
 
+import com.omb.ocpp.security.BaseWssFactoryBuilderWrapper;
 import com.omb.ocpp.server.handler.CoreEventHandler;
 import com.omb.ocpp.server.handler.FirmwareManagementEventHandler;
 import eu.chargetime.ocpp.JSONConfiguration;
@@ -15,7 +16,6 @@ import eu.chargetime.ocpp.feature.profile.ServerLocalAuthListProfile;
 import eu.chargetime.ocpp.feature.profile.ServerRemoteTriggerProfile;
 import eu.chargetime.ocpp.model.Request;
 import eu.chargetime.ocpp.model.SessionInformation;
-import com.omb.ocpp.security.BaseWssFactoryBuilderWrapper;
 import eu.chargetime.ocpp.wss.WssFactoryBuilder;
 import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
@@ -57,7 +57,7 @@ public class OcppServerService {
     }
 
     public void start(String ip, String port, boolean sslEnabled) {
-        LOGGER.info("Starting OCPP Server");
+        LOGGER.info("Starting OCPP Server ip: {}, port: {}", ip, port);
         if (server != null) {
             LOGGER.warn("Server already created, no actions will be performed");
             return;
@@ -72,7 +72,6 @@ public class OcppServerService {
         server.addFeatureProfile(remoteTriggerProfile);
         server.addFeatureProfile(localAuthListProfile);
 
-        LOGGER.info("Ocpp server ip: {}, port: {}", ip, port);
         server.open(ip, Integer.parseInt(port), new ServerEvents() {
             @Override
             public void newSession(UUID sessionIndex, SessionInformation information) {
@@ -117,7 +116,14 @@ public class OcppServerService {
         try {
             LOGGER.debug("Sending message: {} to {}", toJson(request), sessionToken);
             server.send(sessionUUID.orElseThrow(() -> new IllegalArgumentException(String.format("Could not find " +
-                    "client by session token: %s", sessionToken))), request);
+                    "client by session token: %s", sessionToken))), request)
+                    .whenComplete((confirmation, throwable) -> {
+                        if (throwable == null) {
+                            LOGGER.debug("Client responded with: {}", confirmation);
+                        } else {
+                            LOGGER.error("Error parsing response from client", throwable);
+                        }
+                    });
         } catch (OccurenceConstraintException | UnsupportedFeatureException | NotConnectedException e) {
             LOGGER.error(String.format("Could not send message: %s to %s", toJson(request), sessionToken), e);
         }

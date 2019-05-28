@@ -18,7 +18,7 @@ public class WebServer {
     private Server restApiServer;
 
     public void startServer(int restApiPortNumber) throws Exception {
-        logger.info("Starting REST API server");
+        logger.info("Starting REST API server, port: {}", restApiPortNumber);
 
         System.setProperty("org.eclipse.jetty.util.log.class",
                 "org.eclipse.jetty.util.log.JavaUtilLog");

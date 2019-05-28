@@ -10,6 +10,7 @@
     </root>
     <logger name="eu.chargetime" level="DEBUG" />
     <logger name="com.omb" level="DEBUG" />
+    <logger name="eu.chargetime.ocpp.Queue" level="INFO"/>
 
     <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
         <!-- reset all previous level configurations of all j.u.l. loggers -->

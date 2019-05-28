@@ -59,9 +59,9 @@ dependencies {
     compile group: 'org.codehaus.groovy', name: 'groovy-all', version: '3.0.0-alpha-4'
     compile group: 'commons-cli', name: 'commons-cli', version: '1.4'
 
-    compile "org.openjfx:javafx-base:$javafx.version:${platform}"
-    compile "org.openjfx:javafx-graphics:$javafx.version:${platform}"
-    compile "org.openjfx:javafx-controls:$javafx.version:${platform}"
+    compile "org.openjfx:javafx-base:$javafx.version"
+    compile "org.openjfx:javafx-graphics:$javafx.version"
+    compile "org.openjfx:javafx-controls:$javafx.version"
 
     compile 'com.github.v-bodnar.Java-OCA-OCPP:v1_6:master-SNAPSHOT'
     compile 'com.github.v-bodnar.Java-OCA-OCPP:common:master-SNAPSHOT'

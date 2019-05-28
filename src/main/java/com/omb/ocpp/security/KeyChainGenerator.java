@@ -54,7 +54,7 @@ public class KeyChainGenerator {
     private KeyChainGenerator() {
     }
 
-    public static Optional<Certificate> getCertificate(SslKeyStoreConfig keyStoreConfig) {
+    public static Optional<Certificate> getServerCertificate(SslKeyStoreConfig keyStoreConfig) {
         try {
             KeyStore keyStore = keyStoreConfig.geKeyStore().orElseThrow(() -> new KeyStoreException("KeyStore not found"));
             char[] password = keyStoreConfig.getKeystorePassword().toCharArray();
@@ -65,6 +65,16 @@ public class KeyChainGenerator {
             } else {
                 return generateCertificate(keyStore, password, keyStorePath);
             }
+        } catch (KeyStoreException e) {
+            LOGGER.debug("Could not get or generate certificate {}", e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    public static Optional<Certificate> getClientCertificate(SslKeyStoreConfig keyStoreConfig) {
+        try {
+            KeyStore keyStore = keyStoreConfig.geKeyStore().orElseThrow(() -> new KeyStoreException("KeyStore not found"));
+            return Optional.ofNullable(keyStore.getCertificate(OCPP_CLIENT_CERT));
         } catch (KeyStoreException e) {
             LOGGER.debug("Could not get or generate certificate {}", e.getMessage());
             return Optional.empty();
