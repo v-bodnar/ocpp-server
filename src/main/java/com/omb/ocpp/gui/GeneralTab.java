@@ -11,17 +11,18 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -46,12 +47,12 @@ class GeneralTab {
 
     private final OcppServerService ocppServerService;
     private final WebServer webServer;
+    private TextFlow textFlow;
 
-    private double textAreaHeight = 595;
-
-    GeneralTab(ServiceLocator applicationContext) {
+    GeneralTab(ServiceLocator applicationContext, TextFlow textFlow) {
         this.ocppServerService = applicationContext.getService(OcppServerService.class);
         this.webServer = applicationContext.getService(WebServer.class);
+        this.textFlow = textFlow;
     }
 
     Tab constructTab(Stage primaryStage) {
@@ -59,17 +60,11 @@ class GeneralTab {
         tab.setText("General");
         tab.setClosable(false);
 
-        TextArea textArea = new TextArea();
-        textArea.setPrefWidth(995);
-        textArea.layoutBoundsProperty().addListener((observable, oldValue, newValue) -> {
-            if (textAreaHeight != newValue.getHeight()) {
-                textAreaHeight = newValue.getHeight();
-                textArea.setPrefHeight(primaryStage.getHeight() + 20); // +20 is for paddings
-            }
-        });
 
         Button clearButton = new Button("Clear");
-        clearButton.setOnAction(event -> textArea.clear());
+        clearButton.setOnAction(event -> textFlow.getChildren().clear());
+        clearButton.setPrefWidth(100);
+        serverButton.setPrefWidth(100);
 
         HBox hBox = new HBox();
         hBox.setSpacing(10);
@@ -88,13 +83,12 @@ class GeneralTab {
         hBox.getChildren().addAll(serverState, ipCombobox, portTextField, sslEnabledCheckbox, serverButton,
                 clearButton);
 
-        ConsoleStream console = new ConsoleStream(textArea);
-        PrintStream ps = new PrintStream(console, true);
-        System.setOut(ps);
-        System.setErr(ps);
+        final ImageView imageFill = new ImageView(new Image(getClass().getResourceAsStream("/images/ev.png")));
+        imageFill.setPreserveRatio(true);
+        imageFill.fitHeightProperty().bind(primaryStage.heightProperty().subtract(400));
 
         VBox vBox = new VBox();
-        vBox.getChildren().addAll(hBox, textArea);
+        vBox.getChildren().addAll(hBox, imageFill);
         tab.setContent(vBox);
 
         startStateChecker();

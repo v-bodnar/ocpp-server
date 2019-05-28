@@ -5,14 +5,24 @@ import com.omb.ocpp.rest.WebServer;
 import com.omb.ocpp.server.OcppServerService;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
+import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.paint.Color;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.PrintStream;
 import java.util.concurrent.CompletableFuture;
 
 public class GuiApplication extends javafx.application.Application {
@@ -21,6 +31,9 @@ public class GuiApplication extends javafx.application.Application {
     private final GroovyService groovyService = Application.APPLICATION.getService(GroovyService.class);
     private final OcppServerService ocppServerService = applicationContext.getService(OcppServerService.class);
     private final WebServer webServer = applicationContext.getService(WebServer.class);
+
+    private double textAreaHeight = 0;
+
 
     public static void main(String[] args) {
         launch();
@@ -43,12 +56,27 @@ public class GuiApplication extends javafx.application.Application {
         borderPane.prefWidthProperty().bind(scene.widthProperty());
         root.getChildren().add(borderPane);
 
+
+        TextFlow textFlow = new TextFlow ();
+        ConsoleStream console = new ConsoleStream(textFlow);
+        PrintStream ps = new PrintStream(console, true);
+        System.setOut(ps);
+        System.setErr(ps);
+
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setContent(textFlow);
+        scrollPane.setPrefHeight(300);
+        scrollPane.setFitToHeight(true);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-border-width: 0 0 2 0; -fx-border-color : black;");
+
         TabPane tabPane = new TabPane();
-        tabPane.getTabs().add(new GeneralTab(applicationContext).constructTab(primaryStage));
+        tabPane.getTabs().add(new GeneralTab(applicationContext, textFlow).constructTab(primaryStage));
         tabPane.getTabs().add(new CommunicatorTab(applicationContext).constructTab());
         tabPane.getTabs().add(new ServerTab(applicationContext).constructTab());
         tabPane.getTabs().add(new SslTab(applicationContext).constructTab(primaryStage));
         borderPane.setCenter(tabPane);
+        borderPane.setBottom(scrollPane);
 
         primaryStage.setOnCloseRequest(event -> {
             LOGGER.info("Shutting down");
