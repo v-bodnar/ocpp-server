@@ -7,15 +7,8 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
-import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.paint.Color;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import org.glassfish.hk2.api.ServiceLocator;
@@ -31,9 +24,6 @@ public class GuiApplication extends javafx.application.Application {
     private final GroovyService groovyService = Application.APPLICATION.getService(GroovyService.class);
     private final OcppServerService ocppServerService = applicationContext.getService(OcppServerService.class);
     private final WebServer webServer = applicationContext.getService(WebServer.class);
-
-    private double textAreaHeight = 0;
-
 
     public static void main(String[] args) {
         launch();
@@ -57,7 +47,7 @@ public class GuiApplication extends javafx.application.Application {
         root.getChildren().add(borderPane);
 
 
-        TextFlow textFlow = new TextFlow ();
+        TextFlow textFlow = new TextFlow();
         ConsoleStream console = new ConsoleStream(textFlow);
         PrintStream ps = new PrintStream(console, true);
         System.setOut(ps);

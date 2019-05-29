@@ -35,9 +35,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import java.io.InputStream;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateEncodingException;
-import java.util.Base64;
 import java.util.Optional;
 
 @Path("/")
@@ -159,19 +156,15 @@ public class RestAPI {
     @GET
     @Path("download-server-cert")
     public Response downloadServerCertificate() {
-        Optional<Certificate> certificate = KeyChainGenerator.getServerCertificate(sslKeyStoreConfig);
+        Optional<String> certificate = KeyChainGenerator.getServerCertificatePem(sslKeyStoreConfig);
         if (certificate.isPresent()) {
             StreamingOutput fileStream = output -> {
-                try {
-                    output.write(Base64.getEncoder().encode(certificate.get().getEncoded()));
-                    output.flush();
-                } catch (CertificateEncodingException e) {
-                    LOGGER.error("Could not write server certificate", e);
-                }
+                output.write(certificate.get().getBytes());
+                output.flush();
             };
             return Response
                     .ok(fileStream, MediaType.APPLICATION_OCTET_STREAM)
-                    .header("content-disposition", "attachment; filename = server.cer")
+                    .header("content-disposition", "attachment; filename = server.pem")
                     .build();
         } else {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),

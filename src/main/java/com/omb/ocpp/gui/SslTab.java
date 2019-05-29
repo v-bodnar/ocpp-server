@@ -19,8 +19,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateEncodingException;
-import java.util.Base64;
 import java.util.Optional;
 
 import static com.omb.ocpp.security.KeyChainGenerator.saveClientCertificateInKeyStore;
@@ -55,19 +53,18 @@ public class SslTab {
         createClientTextArea();
         fitWidth(clientCertTextArea, primaryStage);
 
-        Optional<Certificate> serverCertificate =
-                KeyChainGenerator.getServerCertificate(sslKeyStoreConfig);
+        Optional<String> serverCertificate =
+                KeyChainGenerator.getServerCertificatePem(sslKeyStoreConfig);
 
         serverCertificateDownloadButton.setPrefWidth(200);
         serverCertificateDownloadButton.setOnAction(event -> {
             serverCertificateDownloader.setTitle("Save server certificate");
-            serverCertificateDownloader.setInitialFileName("ServerCertificate.cer");
+            serverCertificateDownloader.setInitialFileName("ServerCertificate.pem");
             File file = serverCertificateDownloader.showSaveDialog(primaryStage);
             if (file != null && serverCertificate.isPresent()) {
                 try (FileOutputStream os = new FileOutputStream(file)) {
-                    byte[] buf = serverCertificate.get().getEncoded();
-                    os.write(Base64.getEncoder().encode(buf));
-                } catch (IOException | CertificateEncodingException e) {
+                    os.write(serverCertificate.get().getBytes());
+                } catch (IOException e) {
                     LOGGER.error("Could not write certificate to file", e);
                 }
             } else {
@@ -117,7 +114,6 @@ public class SslTab {
             serverCertTextArea.setText(String.format("Server Certificate: %s %s", NEW_LINE,
                     serverCertificate.get().toString()));
         } else {
-
             serverCertTextArea.setText(String.format("Certificate is not generated, %s" +
                             "check if file %s exists and contains next information: %s" +
                             "\t keystore.password=<String>password %s" +
