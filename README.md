@@ -1,30 +1,84 @@
-Java FX 12 GUI OCPP server
+# Java FX 12 GUI OCPP server
 
-Requirements:
+**Features**
+* Application has two modes GUI/command line
+* Allows communication with clients using OCPP protocol (Supports SSL/TLS)
+* Exposes REST API to control OCPP communication
+
+**Requirements:**
 * Java 11 +
 * Gradle 4.2 +
 
-Main dependencies:
+**Main dependencies:**
 * Java FX 12
 * OCPP library (https://github.com/v-bodnar/Java-OCA-OCPP)
 * Jetty
 * Jersey
 * Jackson
+* Bouncy Castle
 
-Groovy files will be created under path: LITHOS_HOME/ocpp/groovy.   
-LITHOS_HOME - environment variable  
+**Download**
+```
+git clone https://github.com/v-bodnar/ocpp-server.git
+```
 
-usage:   
+**Build:** 
+```
+cd ocpp-server
 gradle clean build
+```
 
-java -jar build/libs/ocpp-server-0.1.jar <args>  
- -h,--help  print this message  
- -nogui,--nogui  indicates that application should be started dsfdsthout GUI.  
- -ip,--ip <arg>  the ip on which server will accept OCPP and REST connections, default:127.0.0.1, works in combination with -nogui  
- -ocppPort,--ocppPort <arg>  port on which OCPP server will acceptconnections, default:8887, works incombination with -nogui  
- --restPort <arg>  port on which REST server will acceptconnections, default:9090, works incombination with -nogui  
+**Usage:**  
+Before using set **LITHOS_HOME** - environment variable 
+``` 
+cd ocpp-server/build/libs/
+java -jar ocpp-server-0.1.jar <arguments>  
+```
+**Arguments:**  
+ - -h,--help  print this message  
+ - -nogui,--nogui  indicates that application should be started dsfdsthout GUI.  
+ - -ip,--ip <arg>  the ip on which server will accept OCPP and REST connections, default:127.0.0.1, works in 
+ combination with -nogui  
+ - -ocppPort,--ocppPort <arg>  port on which OCPP server will accept connections, default:8887, works in combination 
+ with -nogui  
+ - --restPort <arg>  port on which REST server will accept connections, default:9090, works in combination with -nogui  
   
-Rest api:  
+## Changing server behavior using Groovy
+**$GROOVY_PATH = $LITHOS_HOME/ocpp/groovy/**  
+Groovy files will be created under path: **$GROOVY_PATH**  
+By creating groovy classes inside **$GROOVY_PATH** that implement:
+```
+ConfirmationSupplier<REQUEST extends Request, RESPONSE extends Confirmation> 
+```
+you can change responses that ocpp server sends to clients. Using GUI reload those classes on runtime. 
+ 
+Also you can upload .groovy files using REST API, it will replace files with the same names and automatically load 
+classes to classloader
+
+
+## Setting up ssl configuration
+Create file **$LITHOS_HOME\ocpp\ssl\ssl.properties** with content:
+```
+keystore.password=yourKeystorePassword  
+keystore.protocol=TLSv1.1|TLSv1.2  
+client.authentication.needed=false|true  
+keystore.ciphers=define encryption  
+```
+
+If file ssl.properties not exists Server run without any ssl context
+
+Server will generate self-signed certificate during startup, you can download it using GUI or REST API. Client have to
+ import this certificate to truststore or allow untrusted certificates.  
+ 
+If **client.authentication.needed** was set to **true**, clients certificate has to be added to truststore. This can be 
+done 
+using **JDK keytool**. GUI or REST API also support clients certificate upload with the limit that only single 
+certificate 
+can 
+be uploaded.
+ 
+## REST API 
+```
     @Produces(MediaType.APPLICATION_JSON)  
     @Consumes(MediaType.APPLICATION_JSON)  
     @Path("/")  
@@ -82,14 +136,14 @@ Rest api:
     public Response uploadConfirmationSupplier(@FormDataParam("file") InputStream uploadedInputStream,
                                                @FormDataParam("file") FormDataContentDisposition fileDetail)
 
+    @POST
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Path("upload-client-cert")
+    public Response uploadClientCertificate(@FormDataParam("file") InputStream uploadedInputStream,
+                                            @FormDataParam("file") FormDataContentDisposition fileDetail)
+                                            
+    @GET
+    @Path("download-server-cert")
+    public Response downloadServerCertificate()
 
-
-
-OCPP Server can work with SSL Context.
-If we want to have SSL on we should add file to ${LITHOS_HOME}\ocpp\ssl\ssl.properties with content:
-
-keystore.password=OCPPCaPass
-keystore.protocol=TLSv1.2
-keystore.path=C:\\Users\\plmazeb\\Tools\\OCPP-PKI_20190213\\keystores\\ocppCsSrvKeystore.jks
-
-If file ssl.properties not exists Server run without any ssl context
+```
