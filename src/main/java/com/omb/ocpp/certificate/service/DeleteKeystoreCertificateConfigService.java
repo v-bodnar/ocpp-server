@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.omb.ocpp.certificate.KeystoreConstants;
 import com.omb.ocpp.certificate.api.KeystoreApi;
+import com.omb.ocpp.certificate.config.KeystoreCertificateConfig;
 import com.omb.ocpp.certificate.config.KeystoreCertificatesConfig;
 
 import java.nio.file.Files;
@@ -21,17 +22,15 @@ public class DeleteKeystoreCertificateConfigService {
         this.keystoreUUID = Objects.requireNonNull(keystoreUUID);
     }
 
-    public boolean execute() throws Exception {
+    public void execute() throws Exception {
         KeystoreCertificatesConfig keystoreCertificatesConfig = keystoreApi.getKeystoreCertificatesConfig();
-        if (keystoreCertificatesConfig.deleteKeystoreCertificateConfig(keystoreUUID)) {
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            writeConfigToFile(gson, keystoreCertificatesConfig);
-            return true;
-        }
-        return false;
+        KeystoreCertificateConfig keystoreCertificateConfig = keystoreCertificatesConfig.deleteKeystoreCertificateConfig(keystoreUUID);
+        writeConfigToFile(keystoreCertificatesConfig);
+        Files.delete(keystoreCertificateConfig.getKeystorePath());
     }
 
-    private void writeConfigToFile(Gson gson, KeystoreCertificatesConfig keystoreCertificatesConfig) throws Exception {
+    private void writeConfigToFile(KeystoreCertificatesConfig keystoreCertificatesConfig) throws Exception {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String configAsJson = gson.toJson(keystoreCertificatesConfig);
         Files.writeString(KeystoreConstants.KEYSTORE_CERTIFICATE_CONFIG_PATH, configAsJson);
     }

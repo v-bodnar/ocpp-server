@@ -56,7 +56,7 @@ public class OcppServerService {
         this.sslKeyStoreConfig = sslKeyStoreConfig;
     }
 
-    public void start(String ip, String port, boolean sslEnabled) {
+    public void start(String ip, int port, boolean sslEnabled) {
         LOGGER.info("Starting OCPP Server ip: {}, port: {}", ip, port);
         if (server != null) {
             LOGGER.warn("Server already created, no actions will be performed");
@@ -72,7 +72,7 @@ public class OcppServerService {
         server.addFeatureProfile(remoteTriggerProfile);
         server.addFeatureProfile(localAuthListProfile);
 
-        server.open(ip, Integer.parseInt(port), new ServerEvents() {
+        server.open(ip, port, new ServerEvents() {
             @Override
             public void newSession(UUID sessionIndex, SessionInformation information) {
                 // sessionIndex is used to send messages.
