@@ -70,12 +70,8 @@ public class KeyChainGenerator {
     public static Optional<String> getServerCertificatePem(SslKeyStoreConfig keyStoreConfig) {
         Optional<java.security.cert.Certificate> certificate = getServerCertificate(keyStoreConfig);
         if (certificate.isPresent()) {
-            try {
-                final StringWriter writer = new StringWriter();
-                final JcaPEMWriter pemWriter = new JcaPEMWriter(writer);
+            try (StringWriter writer = new StringWriter(); JcaPEMWriter pemWriter = new JcaPEMWriter(writer)) {
                 pemWriter.writeObject(certificate.get());
-                pemWriter.flush();
-                pemWriter.close();
                 return Optional.ofNullable(writer.toString());
             } catch (IOException e) {
                 LOGGER.debug("Could not get or generate certificate {}", e.getMessage());

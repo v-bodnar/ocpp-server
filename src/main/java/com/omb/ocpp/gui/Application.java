@@ -1,5 +1,10 @@
 package com.omb.ocpp.gui;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.omb.ocpp.certificate.api.KeystoreApiImpl;
+import com.omb.ocpp.certificate.config.KeystoreCertificateConfig;
+import com.omb.ocpp.certificate.config.KeystoreCertificatesConfig;
 import com.omb.ocpp.groovy.GroovyService;
 import com.omb.ocpp.rest.WebServer;
 import com.omb.ocpp.server.OcppServerService;
@@ -17,10 +22,15 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.util.Optional;
+import java.util.UUID;
 
 public class Application {
     private static final Logger LOGGER = LoggerFactory.getLogger(Application.class);
     public static final String LITHOS_HOME = Optional.ofNullable(System.getenv("LITHOS_HOME")).orElse("/home/bmterra/lithos");
+
+    private static final String SHOW_KEYSTORE_CONFIG = "showKeystoreConfig";
+    private static final String CREATE_KEYSTORE_CERTIFICATE = "createKeystoreCertificate";
+    private static final String DELETE_KEYSTORE_CERTIFICATE = "deleteKeystoreCertificate";
 
     private static final String NO_GUI_ID = "nogui";
     private static final String IP_ID = "ip";
@@ -46,11 +56,14 @@ public class Application {
     @Inject
     private WebServer webServer;
 
+    @Inject
+    private KeystoreApiImpl keystoreApi;
+
     private Application() {
         applicationContext.inject(this);
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         try {
             CommandLineParser parser = new DefaultParser();
             Options options = getOptions();
@@ -62,6 +75,17 @@ public class Application {
             ocppSsl = cmd.hasOption(OCPP_SSL_ID) && Boolean.parseBoolean(cmd.getOptionValue(OCPP_SSL_ID));
             if (cmd.hasOption("help")) {
                 printHelp(options);
+            } else if (cmd.hasOption(SHOW_KEYSTORE_CONFIG)) {
+                APPLICATION.showKeystoreCertificatesConfig();
+            } else if (cmd.hasOption(CREATE_KEYSTORE_CERTIFICATE)) {
+                APPLICATION.createKeystoreCertificate();
+            } else if (cmd.hasOption(DELETE_KEYSTORE_CERTIFICATE)) {
+                Optional<UUID> keystoreUUID = Optional.ofNullable(cmd.getOptionValue(DELETE_KEYSTORE_CERTIFICATE)).map(e -> UUID.fromString(e));
+                if (keystoreUUID.isPresent()) {
+                    APPLICATION.deleteKeystoreCertificate(keystoreUUID.get());
+                } else {
+                    throw new IllegalArgumentException("Invalid UUID");
+                }
             } else if (cmd.hasOption(NO_GUI_ID)) {
                 LOGGER.info("Starting server in no GUI mode, ip:{}, ocppPort: {}, restPort: {}", serverIp, ocppPort,
                         restPort);
@@ -76,9 +100,32 @@ public class Application {
         }
     }
 
+    private void showKeystoreCertificatesConfig() throws Exception {
+        KeystoreCertificatesConfig keystoreCertificatesConfig = keystoreApi.getKeystoreCertificatesConfig();
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        LOGGER.info(gson.toJson(keystoreCertificatesConfig));
+    }
+
+    private void createKeystoreCertificate() throws Exception {
+        KeystoreCertificateConfig keystoreCertificateConfig = keystoreApi.createKeystoreCertificate();
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        LOGGER.info(gson.toJson(keystoreCertificateConfig));
+    }
+
+    private void deleteKeystoreCertificate(UUID keystoreUUID) throws Exception {
+        Boolean result = keystoreApi.deleteKeystoreCertificate(keystoreUUID);
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        LOGGER.info(gson.toJson(result));
+    }
+
     private static Options getOptions() {
         Options options = new Options();
         options.addOption("h", "help", false, "print this message");
+
+        options.addOption(SHOW_KEYSTORE_CONFIG, false, "Show keystore config file content");
+        options.addOption(CREATE_KEYSTORE_CERTIFICATE, false, "Create new keystore certificate");
+        options.addOption(DELETE_KEYSTORE_CERTIFICATE, true, "Delete keystore certificate");
+
         options.addOption(NO_GUI_ID, NO_GUI_ID, false, "indicates that application should be " +
                 "started without GUI.");
         options.addOption(IP_ID, IP_ID, true, "the ip on which server will accept OCPP connections, default:127" +
