@@ -24,6 +24,7 @@ import java.util.Properties;
 
 import static com.omb.ocpp.gui.Application.LITHOS_HOME;
 
+// TODO will be deleted
 @Service
 public class SslKeyStoreConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(SslKeyStoreConfig.class);

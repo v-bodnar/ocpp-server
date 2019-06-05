@@ -1,6 +1,5 @@
 package com.omb.ocpp.security;
 
-import com.omb.ocpp.server.SslKeyStoreConfig;
 import org.java_websocket.SSLSocketChannel2;
 import org.java_websocket.server.DefaultSSLWebSocketServerFactory;
 
@@ -16,11 +15,11 @@ import java.util.List;
 
 public class DefaultSSLWebSocketServerFactoryWrapper extends DefaultSSLWebSocketServerFactory {
 
-    private final SslKeyStoreConfig sslKeystoreConfig;
+    private boolean clientAuthenticationNeeded;
 
-    public DefaultSSLWebSocketServerFactoryWrapper(SslKeyStoreConfig sslKeystoreConfig, SSLContext sslContext) {
+    public DefaultSSLWebSocketServerFactoryWrapper(boolean clientAuthenticationNeeded, SSLContext sslContext) {
         super(sslContext);
-        this.sslKeystoreConfig = sslKeystoreConfig;
+        this.clientAuthenticationNeeded = clientAuthenticationNeeded;
     }
 
     @Override
@@ -35,7 +34,7 @@ public class DefaultSSLWebSocketServerFactoryWrapper extends DefaultSSLWebSocket
         SSLEngine e = sslcontext.createSSLEngine();
         e.setEnabledCipherSuites(enabledCiphers.toArray(new String[enabledCiphers.size()]));
         e.setUseClientMode(false);
-        e.setNeedClientAuth(sslKeystoreConfig.isClientAuthenticationNeeded());
+        e.setNeedClientAuth(clientAuthenticationNeeded);
         return new SSLSocketChannel2(channel, e, exec, key);
     }
 }

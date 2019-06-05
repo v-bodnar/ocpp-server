@@ -73,6 +73,7 @@ public class CreateKeystoreCertificateService {
                 setUuid(randomName).
                 setKeystorePassword(keystorePassword).
                 setKeystorePath(keystorePath.toString()).
+                setKeystoreProtocol("TLSv1.2").
                 build();
     }
 

@@ -1,6 +1,5 @@
 package com.omb.ocpp.security;
 
-import com.omb.ocpp.server.SslKeyStoreConfig;
 import eu.chargetime.ocpp.wss.WssFactoryBuilder;
 import org.java_websocket.WebSocketServerFactory;
 
@@ -10,25 +9,22 @@ import java.util.List;
 
 public class BaseWssFactoryBuilderWrapper implements WssFactoryBuilder {
 
-    private final SslKeyStoreConfig sslKeystoreConfig;
     private List<String> ciphers = new ArrayList<>();
+    private boolean clientAuthenticationNeeded;
     private SSLContext sslContext;
 
-    private BaseWssFactoryBuilderWrapper(SslKeyStoreConfig sslKeystoreConfig) {
-        this.sslKeystoreConfig = sslKeystoreConfig;
-    }
-
-    public static BaseWssFactoryBuilderWrapper builder(SslKeyStoreConfig sslKeystoreConfig) {
-        return new BaseWssFactoryBuilderWrapper(sslKeystoreConfig);
-    }
-
-    public BaseWssFactoryBuilderWrapper ciphers(List<String> ciphers) {
+    public BaseWssFactoryBuilderWrapper setCiphers(List<String> ciphers) {
         this.ciphers = ciphers;
         return this;
     }
 
-    public BaseWssFactoryBuilderWrapper sslContext(SSLContext sslContext) {
+    public BaseWssFactoryBuilderWrapper setSslContext(SSLContext sslContext) {
         this.sslContext = sslContext;
+        return this;
+    }
+
+    public BaseWssFactoryBuilderWrapper setClientAuthenticationNeeded(boolean clientAuthenticationNeeded) {
+        this.clientAuthenticationNeeded = clientAuthenticationNeeded;
         return this;
     }
 
@@ -36,8 +32,8 @@ public class BaseWssFactoryBuilderWrapper implements WssFactoryBuilder {
     public WebSocketServerFactory build() {
         verify();
         return ciphers.isEmpty()
-                ? new DefaultSSLWebSocketServerFactoryWrapper(sslKeystoreConfig, sslContext)
-                : new CustomSSLWebSocketServerFactoryWrapper(sslKeystoreConfig, sslContext, ciphers);
+                ? new DefaultSSLWebSocketServerFactoryWrapper(clientAuthenticationNeeded, sslContext)
+                : new CustomSSLWebSocketServerFactoryWrapper(clientAuthenticationNeeded, ciphers, sslContext);
     }
 
     @Override

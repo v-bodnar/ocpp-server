@@ -8,6 +8,7 @@ import com.omb.ocpp.certificate.config.KeystoreCertificatesConfig;
 import com.omb.ocpp.groovy.GroovyService;
 import com.omb.ocpp.rest.WebServer;
 import com.omb.ocpp.server.OcppServerService;
+import com.omb.ocpp.server.SslContextConfig;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -20,10 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Predicate;
 
 public class Application {
@@ -45,7 +43,10 @@ public class Application {
     private static final String IP_ID = "ip";
     private static final String OCPP_PORT_ID = "ocppPort";
     private static final String REST_PORT_ID = "restPort";
-    private static final String OCPP_SSL_ID = "ocppSsl";
+
+    private static final String KEYSTORE_UUID = "keystoreUUID";
+    private static final String CLIENT_AUTHENTICATED_NEEDED = "clientAuthenticationNeeded";
+    private static final String KEYSTORE_CIPHERS = "keystoreCiphers";
 
     @Inject
     private GroovyService groovyService;
@@ -80,19 +81,8 @@ public class Application {
         COMMANDS.put(line -> line.hasOption(HELP), () -> printHelp(options));
         COMMANDS.put(line -> line.hasOption(SHOW_KEYSTORE_CONFIG), APPLICATION::showKeystoreCertificatesConfig);
         COMMANDS.put(line -> line.hasOption(CREATE_KEYSTORE_CERTIFICATE), APPLICATION::createKeystoreCertificate);
-        COMMANDS.put(line -> line.hasOption(DELETE_KEYSTORE_CERTIFICATE), () -> {
-            UUID keystoreUUID = Optional.ofNullable(cmd.getOptionValue(DELETE_KEYSTORE_CERTIFICATE)).map(UUID::fromString).orElseThrow(() -> new IllegalArgumentException("Keystore UUID not found"));
-            APPLICATION.deleteKeystoreCertificate(keystoreUUID);
-        });
-        COMMANDS.put(line -> line.hasOption(NO_GUI_ID), () -> {
-            String host = cmd.hasOption(IP_ID) ? cmd.getOptionValue(IP_ID) : "127.0.0.1";
-            int ocppPort = cmd.hasOption(OCPP_PORT_ID) ? Integer.parseInt(cmd.getOptionValue(OCPP_PORT_ID)) : 8887;
-            int restPort = cmd.hasOption(REST_PORT_ID) ? Integer.parseInt(cmd.getOptionValue(REST_PORT_ID)) : 9090;
-            boolean ocppSsl = cmd.hasOption(OCPP_SSL_ID) && Boolean.parseBoolean(cmd.getOptionValue(OCPP_SSL_ID));
-
-            LOGGER.info("Starting server in no GUI mode, host:{}, ocppPort: {}, restPort: {}", host, ocppPort, restPort);
-            APPLICATION.startNoGui(host, ocppPort, ocppSsl, restPort);
-        });
+        COMMANDS.put(line -> line.hasOption(DELETE_KEYSTORE_CERTIFICATE), () -> APPLICATION.deleteKeystoreCertificate(cmd));
+        COMMANDS.put(line -> line.hasOption(NO_GUI_ID), () -> APPLICATION.startNoGui(cmd));
 
         Action action = COMMANDS.
                 entrySet().
@@ -117,7 +107,10 @@ public class Application {
         LOGGER.info(gson.toJson(keystoreCertificateConfig));
     }
 
-    private void deleteKeystoreCertificate(UUID keystoreUUID) throws Exception {
+    private void deleteKeystoreCertificate(CommandLine commandLine) throws Exception {
+        UUID keystoreUUID = Optional.ofNullable(commandLine.getOptionValue(DELETE_KEYSTORE_CERTIFICATE)).
+                map(UUID::fromString).
+                orElseThrow(() -> new IllegalArgumentException("Keystore UUID not found"));
         keystoreApi.deleteKeystoreCertificate(keystoreUUID);
     }
 
@@ -132,7 +125,11 @@ public class Application {
         options.addOption(NO_GUI_ID, NO_GUI_ID, false, "indicates that application should be started without GUI.");
         options.addOption(IP_ID, IP_ID, true, "the ip on which server will accept OCPP connections, default:127.0.0.1, works in combination with -nogui");
         options.addOption(OCPP_PORT_ID, OCPP_PORT_ID, true, "port on which OCPP server will accept connections, default:8887, works in combination with -nogui");
-        options.addOption(OCPP_SSL_ID, OCPP_SSL_ID, false, "indicates that ocpp server should work over ssl");
+
+        options.addOption(KEYSTORE_UUID, KEYSTORE_UUID, true, "run ssl server with keystore for defined keystore uuid");
+        options.addOption(CLIENT_AUTHENTICATED_NEEDED, CLIENT_AUTHENTICATED_NEEDED, true, "should server needed for client certificate");
+        options.addOption(KEYSTORE_CIPHERS, KEYSTORE_CIPHERS, true, "list of keystore ciphers separated by comma");
+
         options.addOption(Option.builder(REST_PORT_ID)
                 .longOpt(REST_PORT_ID)
                 .hasArg()
@@ -149,9 +146,28 @@ public class Application {
         formatter.printHelp("ocpp-server", options);
     }
 
-    private void startNoGui(String host, int ocppPort, boolean ocppSsl, int restPort) {
+    private void startNoGui(CommandLine commandLine) throws Exception {
+
         groovyService.loadGroovyScripts();
-        ocppServerService.start(host, ocppPort, ocppSsl);
+
+        String host = commandLine.hasOption(IP_ID) ? commandLine.getOptionValue(IP_ID) : "127.0.0.1";
+        int ocppPort = commandLine.hasOption(OCPP_PORT_ID) ? Integer.parseInt(commandLine.getOptionValue(OCPP_PORT_ID)) : 8887;
+        int restPort = commandLine.hasOption(REST_PORT_ID) ? Integer.parseInt(commandLine.getOptionValue(REST_PORT_ID)) : 9090;
+
+        LOGGER.info("Starting server in no GUI mode, host:{}, ocppPort: {}, restPort: {}", host, ocppPort, restPort);
+
+        if (commandLine.hasOption(KEYSTORE_UUID)) {
+            UUID keystoreUUID = UUID.fromString(commandLine.getOptionValue(KEYSTORE_UUID));
+            SslContextConfig sslContextConfig =
+                    new SslContextConfig().
+                            setSslContext(keystoreApi.initializeSslContext(keystoreUUID)).
+                            setCiphers(Optional.ofNullable(commandLine.getOptionValue(KEYSTORE_CIPHERS)).map(line -> Arrays.asList(line.split(","))).orElse(Collections.emptyList())).
+                            setClientAuthenticationNeeded(Boolean.parseBoolean(commandLine.getOptionValue(CLIENT_AUTHENTICATED_NEEDED, "false")));
+            ocppServerService.setSslContextConfig(sslContextConfig);
+        }
+
+        ocppServerService.start(host, ocppPort);
+
         try {
             webServer.startServer(restPort);
         } catch (Exception e) {

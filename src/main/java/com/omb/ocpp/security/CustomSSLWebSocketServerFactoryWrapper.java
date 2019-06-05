@@ -1,7 +1,5 @@
 package com.omb.ocpp.security;
 
-import com.omb.ocpp.server.SslKeyStoreConfig;
-
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import java.io.IOException;
@@ -17,8 +15,8 @@ public class CustomSSLWebSocketServerFactoryWrapper extends DefaultSSLWebSocketS
 
     private List<String> ciphers;
 
-    public CustomSSLWebSocketServerFactoryWrapper(SslKeyStoreConfig sslKeystoreConfig, SSLContext sslContext, List<String> ciphers) {
-        super(sslKeystoreConfig, sslContext);
+    public CustomSSLWebSocketServerFactoryWrapper(boolean clientAuthenticationNeeded, List<String> ciphers, SSLContext sslContext) {
+        super(clientAuthenticationNeeded, sslContext);
         this.ciphers = Objects.requireNonNull(ciphers);
     }
 

@@ -115,7 +115,7 @@ class GeneralTab {
             serverButton.setDisable(false);
             sslEnabledCheckbox.setDisable(false);
             serverButton.setOnAction(event -> {
-                CompletableFuture.runAsync(() -> ocppServerService.start(ipCombobox.getValue(), Integer.parseInt(portTextField.getText()), sslEnabledCheckbox.isSelected()));
+                CompletableFuture.runAsync(() -> ocppServerService.start(ipCombobox.getValue(), Integer.parseInt(portTextField.getText())));
                 CompletableFuture.runAsync(() -> {
                     try {
                         webServer.startServer(9090);

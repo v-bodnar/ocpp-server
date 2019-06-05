@@ -53,8 +53,7 @@ public class SslTab {
         createClientTextArea();
         fitWidth(clientCertTextArea, primaryStage);
 
-        Optional<String> serverCertificate =
-                KeyChainGenerator.getServerCertificatePem(sslKeyStoreConfig);
+        Optional<String> serverCertificate = KeyChainGenerator.getServerCertificatePem(sslKeyStoreConfig);
 
         serverCertificateDownloadButton.setPrefWidth(200);
         serverCertificateDownloadButton.setOnAction(event -> {

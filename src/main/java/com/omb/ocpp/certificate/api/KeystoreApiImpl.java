@@ -2,11 +2,9 @@ package com.omb.ocpp.certificate.api;
 
 import com.omb.ocpp.certificate.config.KeystoreCertificateConfig;
 import com.omb.ocpp.certificate.config.KeystoreCertificatesConfig;
-import com.omb.ocpp.certificate.service.CreateKeystoreCertificateService;
-import com.omb.ocpp.certificate.service.CreateOrGetKeystoreCertificatesConfigService;
-import com.omb.ocpp.certificate.service.DeleteKeystoreCertificateConfigService;
-import com.omb.ocpp.certificate.service.GetKeyStoreDetailsService;
+import com.omb.ocpp.certificate.service.*;
 
+import javax.net.ssl.SSLContext;
 import java.security.KeyStore;
 import java.util.List;
 import java.util.UUID;
@@ -52,5 +50,11 @@ public class KeystoreApiImpl implements KeystoreApi {
     public synchronized List<KeyStore> getKeyStores(List<UUID> keystoreUUIDs) throws Exception {
         GetKeyStoreDetailsService service = new GetKeyStoreDetailsService(this);
         return service.execute(keystoreUUIDs);
+    }
+
+    @Override
+    public SSLContext initializeSslContext(UUID keystoreUUID) throws Exception {
+        InitializeSslContextService service = new InitializeSslContextService(this, keystoreUUID);
+        return service.execute();
     }
 }

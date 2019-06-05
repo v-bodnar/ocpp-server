@@ -22,10 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -35,34 +32,34 @@ import static com.omb.ocpp.gui.StubRequestsFactory.toJson;
 
 @Service
 public class OcppServerService {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(OcppServerService.class);
 
     private JSONServer server;
     private Map<UUID, SessionInformation> sessionList = new HashMap<>();
     private SessionsListener sessionsListener = new StubSessionListener();
     private ServerCoreProfile coreProfile;
-    private SslKeyStoreConfig sslKeyStoreConfig;
     private Profile firmwareProfile;
     private Profile remoteTriggerProfile;
     private Profile localAuthListProfile;
+    private SslContextConfig sslContextConfig;
 
     @Inject
     public OcppServerService(FirmwareManagementEventHandler firmwareManagementEventHandler,
-                             CoreEventHandler coreEventHandler, SslKeyStoreConfig sslKeyStoreConfig) {
+                             CoreEventHandler coreEventHandler) {
         this.coreProfile = new ServerCoreProfile(coreEventHandler);
         this.firmwareProfile = new ServerFirmwareManagementProfile(firmwareManagementEventHandler);
         this.remoteTriggerProfile = new ServerRemoteTriggerProfile();
         this.localAuthListProfile = new ServerLocalAuthListProfile();
-        this.sslKeyStoreConfig = sslKeyStoreConfig;
     }
 
-    public void start(String ip, int port, boolean sslEnabled) {
+    public void start(String ip, int port) {
         LOGGER.info("Starting OCPP Server ip: {}, port: {}", ip, port);
         if (server != null) {
             LOGGER.warn("Server already created, no actions will be performed");
             return;
         }
-        if (sslEnabled) {
+        if (sslContextConfig != null) {
             server = initializeJsonSslServer();
         } else {
             server = initializeJsonServer();
@@ -127,7 +124,6 @@ public class OcppServerService {
         } catch (OccurenceConstraintException | UnsupportedFeatureException | NotConnectedException e) {
             LOGGER.error(String.format("Could not send message: %s to %s", toJson(request), sessionToken), e);
         }
-
     }
 
     public void sendToAll(Request request) throws NotConnectedException, OccurenceConstraintException, UnsupportedFeatureException {
@@ -159,8 +155,10 @@ public class OcppServerService {
 
     private JSONServer initializeJsonSslServer() {
         try {
-            SSLContext sslContext = initializeSslContextWithKeystore(sslKeyStoreConfig);
-            WssFactoryBuilder wssFactoryBuilder = BaseWssFactoryBuilderWrapper.builder(sslKeyStoreConfig).ciphers(sslKeyStoreConfig.getKeystoreCiphers()).sslContext(sslContext);
+            WssFactoryBuilder wssFactoryBuilder = new BaseWssFactoryBuilderWrapper().
+                    setCiphers(sslContextConfig.getCiphers()).
+                    setClientAuthenticationNeeded(sslContextConfig.isClientAuthenticationNeeded()).
+                    setSslContext(sslContextConfig.getSslContext());
             return new JSONServer(coreProfile, wssFactoryBuilder, JSONConfiguration.get());
         } catch (Exception e) {
             LOGGER.error("Error", e);
@@ -168,17 +166,7 @@ public class OcppServerService {
         }
     }
 
-    private SSLContext initializeSslContextWithKeystore(SslKeyStoreConfig keyStoreConfig) throws Exception {
-
-        SSLContext context = SSLContext.getInstance(keyStoreConfig.getKeystoreProtocol());
-        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-
-        char[] password = keyStoreConfig.getKeystorePassword().toCharArray();
-        KeyStore keyStore = keyStoreConfig.geKeyStore().orElseThrow(() -> new KeyStoreException("KeyStore not found"));
-        keyManagerFactory.init(keyStore, password);
-
-        context.init(keyManagerFactory.getKeyManagers(), null, null);
-
-        return context;
+    public void setSslContextConfig(SslContextConfig sslContextConfig) {
+        this.sslContextConfig = sslContextConfig;
     }
 }

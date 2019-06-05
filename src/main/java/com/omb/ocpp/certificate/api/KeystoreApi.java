@@ -3,6 +3,7 @@ package com.omb.ocpp.certificate.api;
 import com.omb.ocpp.certificate.config.KeystoreCertificateConfig;
 import com.omb.ocpp.certificate.config.KeystoreCertificatesConfig;
 
+import javax.net.ssl.SSLContext;
 import java.security.KeyStore;
 import java.util.List;
 import java.util.UUID;
@@ -23,4 +24,5 @@ public interface KeystoreApi {
 
     List<KeyStore> getKeyStores(List<UUID> keystoreUUIDs) throws Exception;
 
+    SSLContext initializeSslContext(UUID keystoreUUID) throws Exception;
 }

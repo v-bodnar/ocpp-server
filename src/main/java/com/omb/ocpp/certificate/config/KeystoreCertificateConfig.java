@@ -10,11 +10,13 @@ public class KeystoreCertificateConfig {
     private final UUID uuid;
     private final String keystorePassword;
     private final String keystorePath;
+    private final String keystoreProtocol;
 
     private KeystoreCertificateConfig(Builder builder) {
         this.uuid = Objects.requireNonNull(builder.uuid);
         this.keystorePassword = Objects.requireNonNull(builder.keystorePassword);
         this.keystorePath = Objects.requireNonNull(builder.keystorePath);
+        this.keystoreProtocol = Objects.requireNonNull(builder.keystoreProtocol);
     }
 
     public UUID getUuid() {
@@ -29,10 +31,15 @@ public class KeystoreCertificateConfig {
         return Paths.get(keystorePath);
     }
 
+    public String getKeystoreProtocol() {
+        return keystoreProtocol;
+    }
+
     public static class Builder {
         private UUID uuid;
         private String keystorePassword;
         private String keystorePath;
+        private String keystoreProtocol;
 
         public Builder setUuid(UUID uuid) {
             this.uuid = uuid;
@@ -46,6 +53,11 @@ public class KeystoreCertificateConfig {
 
         public Builder setKeystorePath(String keystorePath) {
             this.keystorePath = keystorePath;
+            return this;
+        }
+
+        public Builder setKeystoreProtocol(String keystoreProtocol) {
+            this.keystoreProtocol = keystoreProtocol;
             return this;
         }
 
