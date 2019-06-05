@@ -45,7 +45,7 @@ public class CreateKeystoreCertificateService {
     private static final String OCPP_SERVER_PRIVATE_KEY = "OCPP_SERVER_PRIVATE_KEY";
     private static final String OCPP_SERVER_CERT = "OCPP_SERVER_CERT";
 
-    private KeystoreApi keystoreApi;
+    private final KeystoreApi keystoreApi;
 
     public CreateKeystoreCertificateService(KeystoreApi keystoreApi) {
         this.keystoreApi = Objects.requireNonNull(keystoreApi);

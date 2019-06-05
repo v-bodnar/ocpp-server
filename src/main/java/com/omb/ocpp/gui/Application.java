@@ -2,7 +2,7 @@ package com.omb.ocpp.gui;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.omb.ocpp.certificate.api.KeystoreApiImpl;
+import com.omb.ocpp.certificate.api.KeystoreApi;
 import com.omb.ocpp.certificate.config.KeystoreCertificateConfig;
 import com.omb.ocpp.certificate.config.KeystoreCertificatesConfig;
 import com.omb.ocpp.groovy.GroovyService;
@@ -57,7 +57,7 @@ public class Application {
     private WebServer webServer;
 
     @Inject
-    private KeystoreApiImpl keystoreApi;
+    private KeystoreApi keystoreApi;
 
     private Application() {
         applicationContext.inject(this);

@@ -6,13 +6,11 @@ import com.omb.ocpp.certificate.service.CreateKeystoreCertificateService;
 import com.omb.ocpp.certificate.service.CreateOrGetKeystoreCertificatesConfigService;
 import com.omb.ocpp.certificate.service.DeleteKeystoreCertificateConfigService;
 import com.omb.ocpp.certificate.service.GetKeyStoreDetailsService;
-import org.jvnet.hk2.annotations.Service;
 
 import java.security.KeyStore;
 import java.util.List;
 import java.util.UUID;
 
-@Service
 public class KeystoreApiImpl implements KeystoreApi {
 
     @Override

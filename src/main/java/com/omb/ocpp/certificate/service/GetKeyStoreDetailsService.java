@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 public class GetKeyStoreDetailsService {
 
-    private KeystoreApi keystoreApi;
+    private final KeystoreApi keystoreApi;
 
     public GetKeyStoreDetailsService(KeystoreApi keystoreApi) {
         this.keystoreApi = Objects.requireNonNull(keystoreApi);

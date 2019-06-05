@@ -21,6 +21,6 @@ public class ApplicationBinder extends AbstractBinder {
         bind(CoreEventHandler.class).to(CoreEventHandler.class).in(Singleton.class);
         bind(FirmwareManagementEventHandler.class).to(FirmwareManagementEventHandler.class).in(Singleton.class);
         bind(SslKeyStoreConfig.class).to(SslKeyStoreConfig.class).in(Singleton.class);
-        bind(KeystoreApiImpl.class).to(KeystoreApiImpl.class).in(Singleton.class);
+        bind(KeystoreApiImpl.class).to(KeystoreApi.class).in(Singleton.class);
     }
 }
