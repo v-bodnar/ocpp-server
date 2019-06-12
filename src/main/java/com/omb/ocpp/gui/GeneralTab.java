@@ -17,7 +17,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.slf4j.Logger;
@@ -47,12 +46,10 @@ class GeneralTab {
 
     private final OcppServerService ocppServerService;
     private final WebServer webServer;
-    private TextFlow textFlow;
 
-    GeneralTab(ServiceLocator applicationContext, TextFlow textFlow) {
+    GeneralTab(ServiceLocator applicationContext) {
         this.ocppServerService = applicationContext.getService(OcppServerService.class);
         this.webServer = applicationContext.getService(WebServer.class);
-        this.textFlow = textFlow;
     }
 
     Tab constructTab(Stage primaryStage) {
@@ -60,10 +57,6 @@ class GeneralTab {
         tab.setText("General");
         tab.setClosable(false);
 
-
-        Button clearButton = new Button("Clear");
-        clearButton.setOnAction(event -> textFlow.getChildren().clear());
-        clearButton.setPrefWidth(100);
         serverButton.setPrefWidth(100);
 
         HBox hBox = new HBox();
@@ -80,8 +73,7 @@ class GeneralTab {
                 portTextField.setText("" + DEFAULT_OCPP_PORT);
             }
         });
-        hBox.getChildren().addAll(serverState, ipCombobox, portTextField, sslEnabledCheckbox, serverButton,
-                clearButton);
+        hBox.getChildren().addAll(serverState, ipCombobox, portTextField, sslEnabledCheckbox, serverButton);
 
         final ImageView imageFill = new ImageView(new Image(getClass().getResourceAsStream("/images/ev.png")));
         imageFill.setPreserveRatio(true);
