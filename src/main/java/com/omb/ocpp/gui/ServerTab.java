@@ -9,6 +9,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import org.glassfish.hk2.api.ServiceLocator;
 
@@ -46,7 +48,7 @@ class ServerTab {
         });
 
         TableColumn<ConfirmationSupplier, String> dateCol = new TableColumn<>("Date loaded");
-        dateCol.prefWidthProperty().bind(tableView.widthProperty().divide(3).subtract(10));
+        dateCol.prefWidthProperty().bind(tableView.widthProperty().divide(3).subtract(20));
         dateCol.setCellValueFactory(param -> new ReadOnlyStringWrapper(DateTimeFormatter
                 .ofPattern("yyyy-MM-dd HH:mm:ss")
                 .withLocale(Locale.getDefault())
@@ -58,13 +60,14 @@ class ServerTab {
 
         Button reloadGroovyButton = new Button("Reload groovy scripts");
         reloadGroovyButton.setOnAction(event -> groovyService.reloadGroovyFiles());
-        reloadGroovyButton.setMinWidth(200);
-        reloadGroovyButton.setMaxWidth(200);
+        reloadGroovyButton.setMaxWidth(Double.MAX_VALUE);
+
+        HBox hBox = new HBox();
+        hBox.getChildren().addAll(reloadGroovyButton);
+        HBox.setHgrow(reloadGroovyButton, Priority.ALWAYS);
 
         VBox vBox = new VBox();
-        vBox.setSpacing(10);
-        vBox.setPadding(new Insets(10));
-        vBox.getChildren().addAll(tableView, reloadGroovyButton);
+        vBox.getChildren().addAll(tableView, hBox);
         tab.setContent(vBox);
 
         return tab;

@@ -1,11 +1,11 @@
-package com.omb.ocpp.certificate.service;
+package com.omb.ocpp.security.certificate.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.omb.ocpp.certificate.KeystoreConstants;
-import com.omb.ocpp.certificate.api.KeystoreApi;
-import com.omb.ocpp.certificate.config.KeystoreCertificateConfig;
-import com.omb.ocpp.certificate.config.KeystoreCertificatesConfig;
+import com.omb.ocpp.security.certificate.KeystoreConstants;
+import com.omb.ocpp.security.certificate.api.KeystoreApi;
+import com.omb.ocpp.security.certificate.config.KeystoreCertificateConfig;
+import com.omb.ocpp.security.certificate.config.KeystoreCertificatesConfig;
 
 import java.nio.file.Files;
 import java.util.Objects;

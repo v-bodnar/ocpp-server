@@ -1,11 +1,11 @@
-package com.omb.ocpp.certificate.service;
+package com.omb.ocpp.security.certificate.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.omb.ocpp.certificate.KeystoreConstants;
-import com.omb.ocpp.certificate.api.KeystoreApi;
-import com.omb.ocpp.certificate.config.KeystoreCertificateConfig;
-import com.omb.ocpp.certificate.config.KeystoreCertificatesConfig;
+import com.omb.ocpp.security.certificate.KeystoreConstants;
+import com.omb.ocpp.security.certificate.api.KeystoreApi;
+import com.omb.ocpp.security.certificate.config.KeystoreCertificateConfig;
+import com.omb.ocpp.security.certificate.config.KeystoreCertificatesConfig;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -34,16 +34,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.*;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
 import java.util.*;
 
-public class CreateKeystoreCertificateService {
+import static com.omb.ocpp.security.certificate.KeystoreConstants.OCPP_SERVER_CERT;
+import static com.omb.ocpp.security.certificate.KeystoreConstants.OCPP_SERVER_PRIVATE_KEY;
 
-    private static final String OCPP_SERVER_PRIVATE_KEY = "OCPP_SERVER_PRIVATE_KEY";
-    private static final String OCPP_SERVER_CERT = "OCPP_SERVER_CERT";
+public class CreateKeystoreCertificateService {
 
     private final KeystoreApi keystoreApi;
 
@@ -98,7 +97,7 @@ public class CreateKeystoreCertificateService {
         return keyStoreLocal;
     }
 
-    private Optional<Certificate> generateCertificate(KeyStore keyStore, char[] password, Path keyStorePath) throws Exception {
+    private void generateCertificate(KeyStore keyStore, char[] password, Path keyStorePath) throws Exception {
 
         Security.setProperty("crypto.policy", "unlimited");
         Security.addProvider(new BouncyCastleProvider());
@@ -152,8 +151,6 @@ public class CreateKeystoreCertificateService {
         try (OutputStream out = Files.newOutputStream(keyStorePath)) {
             keyStore.store(out, password);
         }
-
-        return Optional.ofNullable(certificate);
     }
 
     private KeyPair generateKeyPair() throws Exception {

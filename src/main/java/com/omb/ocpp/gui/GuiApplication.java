@@ -3,17 +3,17 @@ package com.omb.ocpp.gui;
 import com.omb.ocpp.groovy.GroovyService;
 import com.omb.ocpp.rest.WebServer;
 import com.omb.ocpp.server.OcppServerService;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
-import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -45,16 +45,13 @@ public class GuiApplication extends javafx.application.Application {
     }
 
     private void createMainScene(Stage primaryStage) {
-        Group root = new Group();
-        Scene scene = new Scene(root, 1000, 600);
+        SplitPane splitPane = new SplitPane();
+        Scene scene = new Scene(splitPane, 1000, 600);
         primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/images/ocpp-logo.png")));
 
-        // bind to take available space
-        BorderPane borderPane = new BorderPane();
-        borderPane.prefHeightProperty().bind(scene.heightProperty());
-        borderPane.prefWidthProperty().bind(scene.widthProperty());
-        root.getChildren().add(borderPane);
-
+        splitPane.setOrientation(Orientation.VERTICAL);
+        splitPane.prefHeightProperty().bind(scene.heightProperty());
+        splitPane.prefWidthProperty().bind(scene.widthProperty());
 
         TextField selectedLine = new TextField();
         TextFlow textFlow = new TextFlow();
@@ -65,15 +62,14 @@ public class GuiApplication extends javafx.application.Application {
 
         ScrollPane scrollPane = new ScrollPane();
         scrollPane.setContent(textFlow);
-        scrollPane.setPrefHeight(280);
+        scrollPane.prefViewportHeightProperty().bind(scene.heightProperty());
         scrollPane.setStyle("-fx-border-width: 0 0 2 0; -fx-border-color : black;");
 
         TabPane tabPane = new TabPane();
-        tabPane.getTabs().add(new GeneralTab(applicationContext).constructTab(primaryStage));
+        tabPane.getTabs().add(new GeneralTab(applicationContext).constructTab(splitPane));
         tabPane.getTabs().add(new CommunicatorTab(applicationContext).constructTab());
         tabPane.getTabs().add(new ServerTab(applicationContext).constructTab());
-        tabPane.getTabs().add(new SslTab(applicationContext).constructTab(primaryStage));
-        borderPane.setCenter(tabPane);
+        tabPane.getTabs().add(new SslServerTab(applicationContext).constructTab(primaryStage));
 
         Button clearButton = new Button("Clear");
         clearButton.setOnAction(event -> textFlow.getChildren().clear());
@@ -96,6 +92,7 @@ public class GuiApplication extends javafx.application.Application {
         VBox leftVBox = new VBox();
 
         HBox hBox = new HBox();
+//        hBox.prefHeightProperty().bind(scene.heightProperty());
         hBox.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(leftVBox, Priority.ALWAYS);
         hBox.setBackground(new Background(new BackgroundFill(Color.LIGHTGREY, null, null)));
@@ -103,7 +100,8 @@ public class GuiApplication extends javafx.application.Application {
         leftVBox.getChildren().addAll(selectedLine, scrollPane);
         rightVBox.getChildren().addAll(clearButton, markerWord, markerRegex, highlightButton);
         hBox.getChildren().addAll(leftVBox, rightVBox);
-        borderPane.setBottom(hBox);
+
+        splitPane.getItems().addAll(tabPane, hBox);
 
         primaryStage.setOnCloseRequest(event -> {
             LOGGER.info("Shutting down");

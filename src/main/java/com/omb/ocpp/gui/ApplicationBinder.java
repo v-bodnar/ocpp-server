@@ -1,7 +1,7 @@
 package com.omb.ocpp.gui;
 
-import com.omb.ocpp.certificate.api.KeystoreApi;
-import com.omb.ocpp.certificate.api.KeystoreApiImpl;
+import com.omb.ocpp.security.certificate.api.KeystoreApi;
+import com.omb.ocpp.security.certificate.api.KeystoreApiImpl;
 import com.omb.ocpp.groovy.GroovyService;
 import com.omb.ocpp.rest.WebServer;
 import com.omb.ocpp.server.OcppServerService;

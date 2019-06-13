@@ -1,15 +1,17 @@
 package com.omb.ocpp.gui;
 
 import com.omb.ocpp.rest.WebServer;
+import com.omb.ocpp.security.certificate.api.KeystoreApi;
 import com.omb.ocpp.server.OcppServerService;
+import com.omb.ocpp.server.SslContextConfig;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -17,7 +19,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
+import javafx.util.StringConverter;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,11 +27,14 @@ import org.slf4j.LoggerFactory;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 
@@ -40,22 +45,80 @@ class GeneralTab {
 
     private final Label serverState = new Label("Stopped");
     private final ComboBox<String> ipCombobox = new ComboBox<>();
+    private final ComboBox<X509Certificate> certificateCombo = new ComboBox<>();
     private final TextField portTextField = new TextField();
     private final Button serverButton = new Button("Start");
-    private final CheckBox sslEnabledCheckbox = new CheckBox("ssl");
 
     private final OcppServerService ocppServerService;
     private final WebServer webServer;
+    private final KeystoreApi keystoreApi;
 
     GeneralTab(ServiceLocator applicationContext) {
         this.ocppServerService = applicationContext.getService(OcppServerService.class);
         this.webServer = applicationContext.getService(WebServer.class);
+        this.keystoreApi = applicationContext.getService(KeystoreApi.class);
     }
 
-    Tab constructTab(Stage primaryStage) {
+    Tab constructTab(SplitPane splitPane) {
         Tab tab = new Tab();
         tab.setText("General");
         tab.setClosable(false);
+        tab.setOnSelectionChanged(event -> {
+            if (event.getTarget().equals(tab)) {
+                try {
+                    certificateCombo.setItems(FXCollections.observableArrayList(keystoreApi.getAllServerCertificates()));
+                    certificateCombo.getItems().add(null);
+                } catch (Exception e) {
+                    LOGGER.error("Could not retrieve certificates data", e);
+                }
+            }
+        });
+
+        certificateCombo.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(X509Certificate certificate) {
+                if (certificate == null) {
+                    return "Select Server Certificate";
+                } else {
+                    return String.format("%s - %s", certificate.getIssuerDN(), certificate.getNotBefore());
+                }
+            }
+
+            @Override
+            public X509Certificate fromString(String string) {
+                try {
+                    Optional<X509Certificate> certificate = keystoreApi.getAllServerCertificates().stream()
+                            .filter(x509Certificate -> x509Certificate.getIssuerDN().toString().equals(string.split(" ")[0]))
+                            .findFirst();
+                    if (certificate.isPresent()) {
+                        return certificate.get();
+                    } else {
+                        LOGGER.error("Could not retrieve certificates data");
+                        return null;
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("Could not retrieve certificates data", e);
+                    return null;
+                }
+            }
+        });
+
+        certificateCombo.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue == null) {
+                ocppServerService.setSslContextConfig(null);
+            } else {
+                try {
+                    UUID keystoreUUID = keystoreApi.getKeyStoreUUIDByCertificate(newValue);
+                    SslContextConfig sslContextConfig = new SslContextConfig().
+                            setSslContext(keystoreApi.initializeSslContext(keystoreUUID)).
+                            setClientAuthenticationNeeded(false);
+                    ocppServerService.setSslContextConfig(sslContextConfig);
+                } catch (Exception e) {
+                    LOGGER.error("Could not retrieve certificates data");
+                }
+
+            }
+        });
 
         serverButton.setPrefWidth(100);
 
@@ -73,11 +136,12 @@ class GeneralTab {
                 portTextField.setText("" + DEFAULT_OCPP_PORT);
             }
         });
-        hBox.getChildren().addAll(serverState, ipCombobox, portTextField, sslEnabledCheckbox, serverButton);
+
+        hBox.getChildren().addAll(serverState, ipCombobox, portTextField, certificateCombo, serverButton);
 
         final ImageView imageFill = new ImageView(new Image(getClass().getResourceAsStream("/images/ev.png")));
         imageFill.setPreserveRatio(true);
-        imageFill.fitHeightProperty().bind(primaryStage.heightProperty().subtract(400));
+        imageFill.fitHeightProperty().bind(splitPane.heightProperty().divide(2).subtract(75));
 
         VBox vBox = new VBox();
         vBox.getChildren().addAll(hBox, imageFill);
@@ -93,7 +157,9 @@ class GeneralTab {
             serverState.setText("Started");
             serverButton.setText("Stop");
             serverButton.setDisable(false);
-            sslEnabledCheckbox.setDisable(true);
+            ipCombobox.setDisable(true);
+            portTextField.setDisable(true);
+            certificateCombo.setDisable(true);
             serverButton.setOnAction(event -> {
                 CompletableFuture.runAsync(ocppServerService::stop);
                 CompletableFuture.runAsync(webServer::shutDown);
@@ -105,7 +171,9 @@ class GeneralTab {
             serverState.setText("Stopped");
             serverButton.setText("Start");
             serverButton.setDisable(false);
-            sslEnabledCheckbox.setDisable(false);
+            ipCombobox.setDisable(false);
+            portTextField.setDisable(false);
+            certificateCombo.setDisable(false);
             serverButton.setOnAction(event -> {
                 CompletableFuture.runAsync(() -> ocppServerService.start(ipCombobox.getValue(), Integer.parseInt(portTextField.getText())));
                 CompletableFuture.runAsync(() -> {

@@ -1,4 +1,4 @@
-package com.omb.ocpp.certificate.config;
+package com.omb.ocpp.security.certificate.config;
 
 import java.util.*;
 

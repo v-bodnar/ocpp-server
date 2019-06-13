@@ -2,9 +2,9 @@ package com.omb.ocpp.gui;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.omb.ocpp.certificate.api.KeystoreApi;
-import com.omb.ocpp.certificate.config.KeystoreCertificateConfig;
-import com.omb.ocpp.certificate.config.KeystoreCertificatesConfig;
+import com.omb.ocpp.security.certificate.api.KeystoreApi;
+import com.omb.ocpp.security.certificate.config.KeystoreCertificateConfig;
+import com.omb.ocpp.security.certificate.config.KeystoreCertificatesConfig;
 import com.omb.ocpp.groovy.GroovyService;
 import com.omb.ocpp.rest.WebServer;
 import com.omb.ocpp.server.OcppServerService;

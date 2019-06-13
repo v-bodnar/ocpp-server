@@ -1,7 +1,7 @@
-package com.omb.ocpp.certificate.service;
+package com.omb.ocpp.security.certificate.service;
 
-import com.omb.ocpp.certificate.api.KeystoreApi;
-import com.omb.ocpp.certificate.config.KeystoreCertificateConfig;
+import com.omb.ocpp.security.certificate.api.KeystoreApi;
+import com.omb.ocpp.security.certificate.config.KeystoreCertificateConfig;
 
 import java.io.InputStream;
 import java.nio.file.Files;
