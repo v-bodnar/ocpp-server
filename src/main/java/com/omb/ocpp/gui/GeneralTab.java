@@ -76,8 +76,12 @@ class GeneralTab {
             }
         });
 
-        validateClientCertCheckBox.selectedProperty().addListener((observable, oldValue, newValue) ->
-                ocppServerService.getSslContextConfig().setClientAuthenticationNeeded(newValue));
+        validateClientCertCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            if (ocppServerService.getSslContextConfig() != null) {
+                ocppServerService.getSslContextConfig().setClientAuthenticationNeeded(newValue);
+            }
+        });
+
 
         certificateCombo.setConverter(new StringConverter<>() {
             @Override
