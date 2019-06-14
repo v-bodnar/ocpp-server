@@ -9,6 +9,7 @@ import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
@@ -46,6 +47,7 @@ class GeneralTab {
     private final Label serverState = new Label("Stopped");
     private final ComboBox<String> ipCombobox = new ComboBox<>();
     private final ComboBox<X509Certificate> certificateCombo = new ComboBox<>();
+    private final CheckBox validateClientCertCheckBox = new CheckBox("validate client cert");
     private final TextField portTextField = new TextField();
     private final Button serverButton = new Button("Start");
 
@@ -73,6 +75,9 @@ class GeneralTab {
                 }
             }
         });
+
+        validateClientCertCheckBox.selectedProperty().addListener((observable, oldValue, newValue) ->
+                ocppServerService.getSslContextConfig().setClientAuthenticationNeeded(newValue));
 
         certificateCombo.setConverter(new StringConverter<>() {
             @Override
@@ -111,6 +116,7 @@ class GeneralTab {
                     UUID keystoreUUID = keystoreApi.getKeyStoreUUIDByCertificate(newValue);
                     SslContextConfig sslContextConfig = new SslContextConfig().
                             setSslContext(keystoreApi.initializeSslContext(keystoreUUID)).
+                            setClientAuthenticationNeeded(validateClientCertCheckBox.isSelected()).
                             setClientAuthenticationNeeded(false);
                     ocppServerService.setSslContextConfig(sslContextConfig);
                 } catch (Exception e) {
@@ -137,7 +143,7 @@ class GeneralTab {
             }
         });
 
-        hBox.getChildren().addAll(serverState, ipCombobox, portTextField, certificateCombo, serverButton);
+        hBox.getChildren().addAll(serverState, ipCombobox, portTextField, certificateCombo, validateClientCertCheckBox, serverButton);
 
         final ImageView imageFill = new ImageView(new Image(getClass().getResourceAsStream("/images/ev.png")));
         imageFill.setPreserveRatio(true);
@@ -159,6 +165,7 @@ class GeneralTab {
             serverButton.setDisable(false);
             ipCombobox.setDisable(true);
             portTextField.setDisable(true);
+            validateClientCertCheckBox.setDisable(true);
             certificateCombo.setDisable(true);
             serverButton.setOnAction(event -> {
                 CompletableFuture.runAsync(ocppServerService::stop);
@@ -174,6 +181,7 @@ class GeneralTab {
             ipCombobox.setDisable(false);
             portTextField.setDisable(false);
             certificateCombo.setDisable(false);
+            validateClientCertCheckBox.setDisable(false);
             serverButton.setOnAction(event -> {
                 CompletableFuture.runAsync(() -> ocppServerService.start(ipCombobox.getValue(), Integer.parseInt(portTextField.getText())));
                 CompletableFuture.runAsync(() -> {

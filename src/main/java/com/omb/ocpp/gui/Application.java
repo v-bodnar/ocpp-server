@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.omb.ocpp.security.certificate.api.KeystoreApi;
 import com.omb.ocpp.security.certificate.config.KeystoreCertificateConfig;
-import com.omb.ocpp.security.certificate.config.KeystoreCertificatesConfig;
+import com.omb.ocpp.security.certificate.config.KeystoreConfigRegistry;
 import com.omb.ocpp.groovy.GroovyService;
 import com.omb.ocpp.rest.WebServer;
 import com.omb.ocpp.server.OcppServerService;
@@ -96,9 +96,9 @@ public class Application {
     }
 
     private void showKeystoreCertificatesConfig() throws Exception {
-        KeystoreCertificatesConfig keystoreCertificatesConfig = keystoreApi.getKeystoreCertificatesConfig();
+        KeystoreConfigRegistry keystoreConfigRegistry = keystoreApi.getKeystoreConfigRegistry();
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        LOGGER.info(gson.toJson(keystoreCertificatesConfig));
+        LOGGER.info(gson.toJson(keystoreConfigRegistry));
     }
 
     private void createKeystoreCertificate() throws Exception {

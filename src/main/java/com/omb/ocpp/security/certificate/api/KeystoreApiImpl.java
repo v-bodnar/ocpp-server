@@ -1,7 +1,7 @@
 package com.omb.ocpp.security.certificate.api;
 
 import com.omb.ocpp.security.certificate.config.KeystoreCertificateConfig;
-import com.omb.ocpp.security.certificate.config.KeystoreCertificatesConfig;
+import com.omb.ocpp.security.certificate.config.KeystoreConfigRegistry;
 import com.omb.ocpp.security.certificate.service.CreateKeystoreCertificateService;
 import com.omb.ocpp.security.certificate.service.CreateOrGetKeystoreCertificatesConfigService;
 import com.omb.ocpp.security.certificate.service.DeleteKeystoreCertificateConfigService;
@@ -32,14 +32,19 @@ public class KeystoreApiImpl implements KeystoreApi {
     }
 
     @Override
-    public synchronized KeystoreCertificatesConfig getKeystoreCertificatesConfig() throws Exception {
+    public synchronized KeystoreConfigRegistry getKeystoreConfigRegistry() throws Exception {
         CreateOrGetKeystoreCertificatesConfigService service = new CreateOrGetKeystoreCertificatesConfigService();
         return service.execute();
     }
 
     @Override
     public synchronized KeystoreCertificateConfig getKeystoreCertificateConfig(UUID keystoreUUID) throws Exception {
-        return getKeystoreCertificatesConfig().getKeystoreCertificateConfig(keystoreUUID);
+        return getKeystoreConfigRegistry().getKeystoreCertificateConfig(keystoreUUID);
+    }
+
+    @Override
+    public synchronized KeystoreCertificateConfig getTrustStoreCertificateConfig() throws Exception {
+        return getKeystoreConfigRegistry().getTrustStoreConfig();
     }
 
     @Override
@@ -51,19 +56,25 @@ public class KeystoreApiImpl implements KeystoreApi {
     @Override
     public List<KeyStore> getKeyStores() throws Exception {
         GetKeyStoreDetailsService service = new GetKeyStoreDetailsService(this);
-        return service.execute();
+        return service.getKeyStores();
     }
 
     @Override
     public synchronized KeyStore getKeyStores(UUID keystoreUUID) throws Exception {
         GetKeyStoreDetailsService service = new GetKeyStoreDetailsService(this);
-        return service.execute(keystoreUUID);
+        return service.getKeyStores(keystoreUUID);
     }
 
     @Override
     public synchronized List<KeyStore> getKeyStores(List<UUID> keystoreUUIDs) throws Exception {
         GetKeyStoreDetailsService service = new GetKeyStoreDetailsService(this);
-        return service.execute(keystoreUUIDs);
+        return service.getKeyStores(keystoreUUIDs);
+    }
+
+    @Override
+    public synchronized KeyStore getTrustStore() throws Exception {
+        GetKeyStoreDetailsService service = new GetKeyStoreDetailsService(this);
+        return service.getTrustStore();
     }
 
     @Override
@@ -89,7 +100,7 @@ public class KeystoreApiImpl implements KeystoreApi {
     }
 
     @Override
-    public X509Certificate getServerCertificate(UUID keystoreUUID) throws Exception {
+    public synchronized X509Certificate getServerCertificate(UUID keystoreUUID) throws Exception {
         Certificate certificate = getKeyStores(keystoreUUID).getCertificate(OCPP_SERVER_CERT);
         if (certificate instanceof X509Certificate) {
             return (X509Certificate) certificate;
@@ -110,8 +121,8 @@ public class KeystoreApiImpl implements KeystoreApi {
     }
 
     @Override
-    public UUID getKeyStoreUUIDByCertificate(Certificate certificate) throws Exception {
-        for (KeystoreCertificateConfig keyStoreConfig : getKeystoreCertificatesConfig().getKeystoreCertificatesConfig()) {
+    public synchronized UUID getKeyStoreUUIDByCertificate(Certificate certificate) throws Exception {
+        for (KeystoreCertificateConfig keyStoreConfig : getKeystoreConfigRegistry().getKeystoreCertificatesConfig()) {
             KeyStore keyStore = getKeyStores(keyStoreConfig.getUuid());
             if (keyStore.getCertificateAlias(certificate) != null) {
                 return keyStoreConfig.getUuid();

@@ -1,11 +1,9 @@
 package com.omb.ocpp.security.certificate.service;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.omb.ocpp.security.certificate.KeystoreConstants;
 import com.omb.ocpp.security.certificate.api.KeystoreApi;
 import com.omb.ocpp.security.certificate.config.KeystoreCertificateConfig;
-import com.omb.ocpp.security.certificate.config.KeystoreCertificatesConfig;
+import com.omb.ocpp.security.certificate.config.KeystoreConfigRegistry;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -26,7 +24,6 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.InetAddress;
@@ -58,9 +55,9 @@ public class CreateKeystoreCertificateService {
     }
 
     private void persistConfigurationToFile(KeystoreCertificateConfig keystoreCertificateConfig) throws Exception {
-        KeystoreCertificatesConfig keystoreCertificatesConfig = keystoreApi.getKeystoreCertificatesConfig();
-        keystoreCertificatesConfig.addKeystoreCertificateConfig(keystoreCertificateConfig);
-        writeConfigToFile(keystoreCertificatesConfig);
+        KeystoreConfigRegistry keystoreConfigRegistry = keystoreApi.getKeystoreConfigRegistry();
+        keystoreConfigRegistry.addKeystoreCertificateConfig(keystoreCertificateConfig);
+        keystoreConfigRegistry.persist();
     }
 
     private KeystoreCertificateConfig randomDataForConfig() {
@@ -74,12 +71,6 @@ public class CreateKeystoreCertificateService {
                 setKeystorePath(keystorePath.toString()).
                 setKeystoreProtocol("TLSv1.2").
                 build();
-    }
-
-    private void writeConfigToFile(KeystoreCertificatesConfig keystoreCertificatesConfig) throws IOException {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String configAsJson = gson.toJson(keystoreCertificatesConfig);
-        Files.writeString(KeystoreConstants.KEYSTORE_CERTIFICATE_CONFIG_PATH, configAsJson);
     }
 
     private void createJavaKeyStoreWithCertificate(KeystoreCertificateConfig keystoreCertificateConfig) throws Exception {

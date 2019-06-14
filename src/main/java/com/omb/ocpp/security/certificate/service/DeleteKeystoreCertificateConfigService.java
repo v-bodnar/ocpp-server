@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.omb.ocpp.security.certificate.KeystoreConstants;
 import com.omb.ocpp.security.certificate.api.KeystoreApi;
 import com.omb.ocpp.security.certificate.config.KeystoreCertificateConfig;
-import com.omb.ocpp.security.certificate.config.KeystoreCertificatesConfig;
+import com.omb.ocpp.security.certificate.config.KeystoreConfigRegistry;
 
 import java.nio.file.Files;
 import java.util.Objects;
@@ -23,15 +23,15 @@ public class DeleteKeystoreCertificateConfigService {
     }
 
     public void execute() throws Exception {
-        KeystoreCertificatesConfig keystoreCertificatesConfig = keystoreApi.getKeystoreCertificatesConfig();
-        KeystoreCertificateConfig keystoreCertificateConfig = keystoreCertificatesConfig.deleteKeystoreCertificateConfig(keystoreUUID);
-        writeConfigToFile(keystoreCertificatesConfig);
+        KeystoreConfigRegistry keystoreConfigRegistry = keystoreApi.getKeystoreConfigRegistry();
+        KeystoreCertificateConfig keystoreCertificateConfig = keystoreConfigRegistry.deleteKeystoreCertificateConfig(keystoreUUID);
+        writeConfigToFile(keystoreConfigRegistry);
         Files.delete(keystoreCertificateConfig.getKeystorePath());
     }
 
-    private void writeConfigToFile(KeystoreCertificatesConfig keystoreCertificatesConfig) throws Exception {
+    private void writeConfigToFile(KeystoreConfigRegistry keystoreConfigRegistry) throws Exception {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String configAsJson = gson.toJson(keystoreCertificatesConfig);
+        String configAsJson = gson.toJson(keystoreConfigRegistry);
         Files.writeString(KeystoreConstants.KEYSTORE_CERTIFICATE_CONFIG_PATH, configAsJson);
     }
 }

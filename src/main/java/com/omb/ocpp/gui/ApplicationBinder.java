@@ -4,6 +4,7 @@ import com.omb.ocpp.security.certificate.api.KeystoreApi;
 import com.omb.ocpp.security.certificate.api.KeystoreApiImpl;
 import com.omb.ocpp.groovy.GroovyService;
 import com.omb.ocpp.rest.WebServer;
+import com.omb.ocpp.security.certificate.service.TrustStoreService;
 import com.omb.ocpp.server.OcppServerService;
 import com.omb.ocpp.server.SslKeyStoreConfig;
 import com.omb.ocpp.server.handler.CoreEventHandler;
@@ -22,5 +23,6 @@ public class ApplicationBinder extends AbstractBinder {
         bind(FirmwareManagementEventHandler.class).to(FirmwareManagementEventHandler.class).in(Singleton.class);
         bind(SslKeyStoreConfig.class).to(SslKeyStoreConfig.class).in(Singleton.class);
         bind(KeystoreApiImpl.class).to(KeystoreApi.class).in(Singleton.class);
+        bind(TrustStoreService.class).to(TrustStoreService.class).in(Singleton.class);
     }
 }

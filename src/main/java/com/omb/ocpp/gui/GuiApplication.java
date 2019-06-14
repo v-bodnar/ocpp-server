@@ -70,10 +70,12 @@ public class GuiApplication extends javafx.application.Application {
         tabPane.getTabs().add(new CommunicatorTab(applicationContext).constructTab());
         tabPane.getTabs().add(new ServerTab(applicationContext).constructTab());
         tabPane.getTabs().add(new SslServerTab(applicationContext).constructTab(primaryStage));
+        tabPane.getTabs().add(new SslClientTab(applicationContext).constructTab(primaryStage));
 
         Button clearButton = new Button("Clear");
         clearButton.setOnAction(event -> textFlow.getChildren().clear());
         clearButton.setPrefWidth(100);
+        clearButton.setMinWidth(100);
 
         TextField markerWord = new TextField();
         markerWord.setPromptText("string");
@@ -92,7 +94,6 @@ public class GuiApplication extends javafx.application.Application {
         VBox leftVBox = new VBox();
 
         HBox hBox = new HBox();
-//        hBox.prefHeightProperty().bind(scene.heightProperty());
         hBox.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(leftVBox, Priority.ALWAYS);
         hBox.setBackground(new Background(new BackgroundFill(Color.LIGHTGREY, null, null)));

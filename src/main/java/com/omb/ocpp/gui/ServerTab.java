@@ -30,7 +30,7 @@ class ServerTab {
 
     Tab constructTab() {
         Tab tab = new Tab();
-        tab.setText("G Server");
+        tab.setText("Groovy");
         tab.setClosable(false);
 
         tableView.setItems(FXCollections.observableArrayList(groovyService.getConfirmationSuppliers()));

@@ -168,4 +168,8 @@ public class OcppServerService {
     public void setSslContextConfig(SslContextConfig sslContextConfig) {
         this.sslContextConfig = sslContextConfig;
     }
+
+    public SslContextConfig getSslContextConfig() {
+        return sslContextConfig;
+    }
 }

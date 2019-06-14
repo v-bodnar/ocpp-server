@@ -9,6 +9,8 @@ import java.security.KeyStore;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.omb.ocpp.security.certificate.KeystoreConstants.TRUST_STORE_UUID;
+
 public class GetKeyStoreDetailsService {
 
     private final KeystoreApi keystoreApi;
@@ -17,27 +19,33 @@ public class GetKeyStoreDetailsService {
         this.keystoreApi = Objects.requireNonNull(keystoreApi);
     }
 
-    public List<KeyStore> execute() throws Exception {
+    public List<KeyStore> getKeyStores() throws Exception {
         List<UUID> keystoreUUIDs = keystoreApi.
-                getKeystoreCertificatesConfig().
+                getKeystoreConfigRegistry().
                 getKeystoreCertificatesConfig().
                 stream().
+                filter(keystoreCertificateConfig -> !keystoreCertificateConfig.getUuid().equals(UUID.fromString(TRUST_STORE_UUID))).
                 map(config -> config.getUuid()).
                 collect(Collectors.toList());
 
-        return execute(keystoreUUIDs);
+        return getKeyStores(keystoreUUIDs);
     }
 
-    public List<KeyStore> execute(List<UUID> keystoreUUIDs) throws Exception {
+    public List<KeyStore> getKeyStores(List<UUID> keystoreUUIDs) throws Exception {
         List<KeyStore> keyStoreList = new ArrayList<>();
         for (UUID keystoreUUID : keystoreUUIDs) {
-            keyStoreList.add(execute(keystoreUUID));
+            keyStoreList.add(getKeyStores(keystoreUUID));
         }
         return Collections.unmodifiableList(keyStoreList);
     }
 
-    public KeyStore execute(UUID keystoreUUID) throws Exception {
+    public KeyStore getKeyStores(UUID keystoreUUID) throws Exception {
         KeystoreCertificateConfig keystoreCertificateConfig = keystoreApi.getKeystoreCertificateConfig(keystoreUUID);
+        return loadKeyStore(keystoreCertificateConfig);
+    }
+
+    public KeyStore getTrustStore() throws Exception {
+        KeystoreCertificateConfig keystoreCertificateConfig = keystoreApi.getTrustStoreCertificateConfig();
         return loadKeyStore(keystoreCertificateConfig);
     }
 
