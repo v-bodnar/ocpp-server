@@ -1,10 +1,13 @@
 package com.omb.ocpp.rest;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.omb.ocpp.groovy.GroovyService;
 import com.omb.ocpp.gui.Application;
-import com.omb.ocpp.security.KeyChainGenerator;
+import com.omb.ocpp.security.certificate.api.KeystoreApi;
+import com.omb.ocpp.security.certificate.config.KeystoreCertificateConfig;
+import com.omb.ocpp.security.certificate.service.TrustStoreService;
 import com.omb.ocpp.server.OcppServerService;
-import com.omb.ocpp.server.SslKeyStoreConfig;
 import eu.chargetime.ocpp.NotConnectedException;
 import eu.chargetime.ocpp.OccurenceConstraintException;
 import eu.chargetime.ocpp.UnsupportedFeatureException;
@@ -27,15 +30,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Path("/")
 @Produces(MediaType.APPLICATION_JSON)
@@ -44,7 +51,9 @@ public class RestAPI {
     private static final Logger LOGGER = LoggerFactory.getLogger(RestAPI.class);
     private final OcppServerService ocppServerService = Application.APPLICATION.getService(OcppServerService.class);
     private final GroovyService groovyService = Application.APPLICATION.getService(GroovyService.class);
-    private final SslKeyStoreConfig sslKeyStoreConfig = Application.APPLICATION.getService(SslKeyStoreConfig.class);
+    private final KeystoreApi keystoreApi = Application.APPLICATION.getService(KeystoreApi.class);
+    private final TrustStoreService trustStoreService = Application.APPLICATION.getService(TrustStoreService.class);
+    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     @POST
     @Path("send-reset-request")
@@ -145,7 +154,7 @@ public class RestAPI {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
-            KeyChainGenerator.saveClientCertificateInKeyStore(sslKeyStoreConfig, uploadedInputStream);
+            trustStoreService.addClientCertificate(uploadedInputStream);
             return Response.ok().build();
         } catch (Exception e) {
             LOGGER.error("Could not upload client certificate", e);
@@ -153,24 +162,94 @@ public class RestAPI {
         }
     }
 
+    @DELETE
+    @Path("delete-client-cert")
+    public Response deleteClientCertificate(@QueryParam("alias") String alias) {
+        if (alias == null) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        try {
+            trustStoreService.deleteClientCertificate(alias);
+            return Response.ok().build();
+        } catch (Exception e) {
+            LOGGER.error("Could not delete client certificate", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), e.getMessage()).build();
+        }
+    }
+
+    @GET
+    @Path("list-trust-store-aliases")
+    public Response listClientCertificate() {
+        Optional<List<String>> aliases = trustStoreService.listAliasses();
+        if (aliases.isPresent()) {
+            return Response.ok(aliases.get()).build();
+        } else {
+            LOGGER.error("Could not list trust store aliases");
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),
+                    "Could not list trust store aliases").build();
+        }
+    }
+
     @GET
     @Path("download-server-cert")
-    public Response downloadServerCertificate() {
-        Optional<String> certificate = KeyChainGenerator.getServerCertificatePem(sslKeyStoreConfig);
-        if (certificate.isPresent()) {
+    public Response downloadServerCertificate(@QueryParam("uuid") String uuid) {
+        try {
+            String certificate = keystoreApi.getServerCertificatePem(UUID.fromString(uuid));
             StreamingOutput fileStream = output -> {
-                output.write(certificate.get().getBytes());
+                output.write(certificate.getBytes());
                 output.flush();
             };
             return Response
                     .ok(fileStream, MediaType.APPLICATION_OCTET_STREAM)
                     .header("content-disposition", "attachment; filename = server.pem")
                     .build();
-        } else {
+        } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),
-                    "Server certificate does not exist").build();
+                    String.format("Server certificate does not exist, error: %s", e.getMessage())).build();
         }
+    }
 
+    @DELETE
+    @Path("delete-server-cert")
+    public Response deleteServerCertificate(@QueryParam("uuid") String uuid) {
+        try {
+            keystoreApi.deleteKeystoreCertificate(UUID.fromString(uuid));
+            return Response
+                    .ok()
+                    .build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),
+                    String.format("Could not delete certificate, error: %s", e.getMessage())).build();
+        }
+    }
+
+    @POST
+    @Path("generate-server-cert")
+    public Response generateServerCertificate() {
+        try {
+            KeystoreCertificateConfig keystoreCertificateConfig = keystoreApi.createKeystoreCertificate();
+            return Response
+                    .ok(gson.toJson(keystoreCertificateConfig))
+                    .build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),
+                    String.format("Could not delete certificate, error: %s", e.getMessage())).build();
+        }
+    }
+
+    @GET
+    @Path("get-keystore-config")
+    public Response getKeyStoreConfig() {
+        try {
+            List<KeystoreCertificateConfig> configList =
+                    keystoreApi.getKeystoreConfigRegistry().getKeystoreCertificatesConfig();
+            return Response
+                    .ok(gson.toJson(configList))
+                    .build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),
+                    String.format("Server certificate does not exist, error: %s", e.getMessage())).build();
+        }
     }
 
     private Response sendRequest(Request request) {

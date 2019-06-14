@@ -10,6 +10,7 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public interface KeystoreApi {
 
@@ -40,4 +41,6 @@ public interface KeystoreApi {
     String getServerCertificatePem(UUID keystoreUUID) throws Exception;
 
     UUID getKeyStoreUUIDByCertificate(Certificate certificate) throws Exception;
+
+    void setKeystoreListener(Consumer<Void> listener);
 }

@@ -8,6 +8,8 @@ import com.omb.ocpp.security.certificate.service.DeleteKeystoreCertificateConfig
 import com.omb.ocpp.security.certificate.service.GetKeyStoreDetailsService;
 import com.omb.ocpp.security.certificate.service.InitializeSslContextService;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
 import java.io.StringWriter;
@@ -19,16 +21,22 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.omb.ocpp.security.certificate.KeystoreConstants.OCPP_SERVER_CERT;
 
 public class KeystoreApiImpl implements KeystoreApi {
+    private static final Logger LOGGER = LoggerFactory.getLogger(KeystoreApiImpl.class);
+
+    private Consumer<Void> certChangeListener = aVoid -> LOGGER.debug("No listeners attached");
 
     @Override
     public synchronized KeystoreCertificateConfig createKeystoreCertificate() throws Exception {
         CreateKeystoreCertificateService service = new CreateKeystoreCertificateService(this);
-        return service.execute();
+        KeystoreCertificateConfig keystoreCertificateConfig = service.execute();
+        certChangeListener.accept(null);
+        return keystoreCertificateConfig;
     }
 
     @Override
@@ -51,6 +59,7 @@ public class KeystoreApiImpl implements KeystoreApi {
     public synchronized void deleteKeystoreCertificate(UUID keystoreUUID) throws Exception {
         DeleteKeystoreCertificateConfigService service = new DeleteKeystoreCertificateConfigService(this, keystoreUUID);
         service.execute();
+        certChangeListener.accept(null);
     }
 
     @Override
@@ -129,5 +138,10 @@ public class KeystoreApiImpl implements KeystoreApi {
             }
         }
         throw new KeyStoreException("Certificate not found");
+    }
+
+    @Override
+    public void setKeystoreListener(Consumer<Void> listener) {
+        this.certChangeListener = listener;
     }
 }

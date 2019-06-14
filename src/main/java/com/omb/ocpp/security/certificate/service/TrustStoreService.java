@@ -22,10 +22,14 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import static com.omb.ocpp.security.certificate.KeystoreConstants.TRUST_STORE_PATH;
 import static com.omb.ocpp.security.certificate.KeystoreConstants.TRUST_STORE_UUID;
@@ -37,6 +41,7 @@ public class TrustStoreService {
     private final KeystoreApi keystoreApi;
     private KeystoreCertificateConfig trustStoreConfig;
     private KeyStore trustStore;
+    private Consumer<Void> certChangeListener = aVoid -> LOGGER.debug("No listeners attached");
 
     @Inject
     public TrustStoreService(KeystoreApi keystoreApi) {
@@ -59,6 +64,7 @@ public class TrustStoreService {
             String alias = String.format("%s - %s", certificate.getIssuerDN(), certificate.getNotBefore());
             trustStore.setCertificateEntry(alias, certificate);
             trustStore.store(os, trustStoreConfig.getKeystorePassword().toCharArray());
+            certChangeListener.accept(null);
         } catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException e) {
             LOGGER.error("Could not add certificate to TrustStore");
         }
@@ -79,6 +85,17 @@ public class TrustStoreService {
             String alias = String.format("%s - %s", certificate.getIssuerDN(), certificate.getNotBefore());
             trustStore.deleteEntry(alias);
             trustStore.store(os, trustStoreConfig.getKeystorePassword().toCharArray());
+            certChangeListener.accept(null);
+        } catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException e) {
+            LOGGER.error("Could not delete certificate from TrustStore");
+        }
+    }
+
+    public void deleteClientCertificate(String alias) {
+        try (OutputStream os = Files.newOutputStream(TRUST_STORE_PATH)) {
+            trustStore.deleteEntry(alias);
+            trustStore.store(os, trustStoreConfig.getKeystorePassword().toCharArray());
+            certChangeListener.accept(null);
         } catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException e) {
             LOGGER.error("Could not delete certificate from TrustStore");
         }
@@ -109,6 +126,15 @@ public class TrustStoreService {
             LOGGER.error("Could not get certificate from TrustStore");
         }
         return certificates;
+    }
+
+    public Optional<List<String>> listAliasses() {
+        try {
+            return Optional.ofNullable(Collections.list(trustStore.aliases()));
+        } catch (KeyStoreException e) {
+            LOGGER.error("Could not get certificate from TrustStore");
+            return Optional.empty();
+        }
     }
 
     private void createTrustStore() {
@@ -143,5 +169,9 @@ public class TrustStoreService {
         } catch (Exception e) {
             LOGGER.error("could not load TrustStore");
         }
+    }
+
+    public void setCertChangeListener(Consumer<Void> certChangeListener) {
+        this.certChangeListener = certChangeListener;
     }
 }

@@ -40,6 +40,8 @@ public class SslServerTab {
         tab.setText("Server Certificates");
         tab.setClosable(false);
 
+        keystoreApi.setKeystoreListener(aVoid -> populateTable());
+
         generateCertificateButton.setMaxWidth(Double.MAX_VALUE);
         generateCertificateButton.setOnAction(event -> {
             try {
@@ -90,7 +92,7 @@ public class SslServerTab {
                     certificateDownloader.setTitle("Save server certificate");
                     certificateDownloader.setInitialFileName("ServerCertificate.pem");
                     File file = certificateDownloader.showSaveDialog(primaryStage);
-                    if(file == null){
+                    if (file == null) {
                         return;
                     }
                     try (FileOutputStream os = new FileOutputStream(file)) {

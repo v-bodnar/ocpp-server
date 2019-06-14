@@ -42,6 +42,8 @@ public class SslClientTab {
         tab.setText("Client Certificates");
         tab.setClosable(false);
 
+        trustStoreService.setCertChangeListener(aVoid -> populateTable());
+
         uploadCertificateButton.setMaxWidth(Double.MAX_VALUE);
         uploadCertificateButton.setOnAction(event -> {
             try {
