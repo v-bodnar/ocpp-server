@@ -28,13 +28,14 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.jvnet.hk2.annotations.Service;
@@ -70,7 +71,7 @@ public class CommunicatorTab {
         this.ocppServerService = applicationContext.getService(OcppServerService.class);
     }
 
-    public Tab constructTab() {
+    public Tab constructTab(Stage primaryStage) {
         Tab tab = new Tab();
         tab.setText("Communicator");
         tab.setClosable(false);
@@ -78,28 +79,22 @@ public class CommunicatorTab {
         ObservableList<String> items = FXCollections.observableArrayList(
                 getSessionsListFormatted(ocppServerService.getSessionList()));
         sessionsList.setItems(items);
+        sessionsList.setMinWidth(200);
         sessionsList.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) ->
                 selectedClientField.setText(newValue));
         ocppServerService.setSessionsListener(new GuiSessionsListener());
-
-        Label label = new Label();
-        label.setText("Selected client:");
-
-        selectedClientField.setText("NONE");
-        selectedClientField.setPrefWidth(500);
+        selectedClientField.setPromptText("Selected client");
         selectedClientField.setEditable(false);
 
-        HBox hBox1 = new HBox();
-        hBox1.setSpacing(10);
-        hBox1.setPadding(new Insets(5));
-        hBox1.setAlignment(Pos.CENTER_LEFT);
-        hBox1.getChildren().addAll(label, selectedClientField);
 
         messageTypeCombo.setItems(FXCollections.observableArrayList(messagesAvailableForSend));
+        messageTypeCombo.prefWidthProperty().bind(primaryStage.widthProperty());
         messageTypeCombo.setConverter(new StringConverter<>() {
             @Override
             public String toString(Class<? extends Request> object) {
-                if(object == null) return "";
+                if (object == null) {
+                    return "Select request";
+                }
                 return object.getSimpleName();
             }
 
@@ -117,11 +112,14 @@ public class CommunicatorTab {
                 messageTextArea.setText(StubRequestsFactory.getStubRequest(messageTypeCombo.getValue()));
             }
         });
+        messageTextArea.prefWidthProperty().bind(primaryStage.widthProperty());
+        sendButton.prefWidthProperty().bind(primaryStage.widthProperty());
 
         VBox vBox = new VBox();
+        VBox.setVgrow(messageTextArea, Priority.ALWAYS);
         vBox.setSpacing(10);
         vBox.setPadding(new Insets(5));
-        vBox.getChildren().addAll(hBox1, messageTypeCombo, messageTextArea, sendButton);
+        vBox.getChildren().addAll(selectedClientField, messageTypeCombo, messageTextArea, sendButton);
         vBox.setFillWidth(true);
 
         sendButton.setOnAction(event -> {

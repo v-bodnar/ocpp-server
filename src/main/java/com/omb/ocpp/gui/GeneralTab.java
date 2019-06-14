@@ -8,10 +8,10 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
@@ -44,12 +44,21 @@ class GeneralTab {
     private static final Pattern IP_ADDRESS_PATTERN = Pattern.compile("((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(?:\\.|$)){4}");
     private static final int DEFAULT_OCPP_PORT = 8887;
 
-    private final Label serverState = new Label("Stopped");
     private final ComboBox<String> ipCombobox = new ComboBox<>();
     private final ComboBox<X509Certificate> certificateCombo = new ComboBox<>();
-    private final CheckBox validateClientCertCheckBox = new CheckBox("validate client cert");
+    private final CheckBox validateClientCertCheckBox = new CheckBox("Validate client certificate");
     private final TextField portTextField = new TextField();
     private final Button serverButton = new Button("Start");
+    private final HBox hBox = new HBox();
+
+    private final ImageView statusStopped = new ImageView(new Image(getClass().getResourceAsStream("/images" +
+            "/ev_stopped.png")));
+    private final ImageView statusPending = new ImageView(new Image(getClass().getResourceAsStream("/images" +
+            "/ev_pending.png")));
+    private final ImageView statusStarted = new ImageView(new Image(getClass().getResourceAsStream("/images" +
+            "/ev_started.png")));
+
+    private Status status = Status.STOPPED;
 
     private final OcppServerService ocppServerService;
     private final WebServer webServer;
@@ -132,11 +141,6 @@ class GeneralTab {
 
         serverButton.setPrefWidth(100);
 
-        HBox hBox = new HBox();
-        hBox.setSpacing(10);
-        hBox.setPadding(new Insets(5));
-        hBox.setAlignment(Pos.CENTER_LEFT);
-        HBox.setHgrow(serverState, Priority.ALWAYS);
         ipCombobox.setItems(FXCollections.observableArrayList(getIpAddresses()));
         ipCombobox.setValue("127.0.0.1");
         portTextField.setText("8887");
@@ -147,15 +151,30 @@ class GeneralTab {
             }
         });
 
-        hBox.getChildren().addAll(serverState, ipCombobox, portTextField, certificateCombo, validateClientCertCheckBox, serverButton);
-
-        final ImageView imageFill = new ImageView(new Image(getClass().getResourceAsStream("/images/ev.png")));
-        imageFill.setPreserveRatio(true);
-        imageFill.fitHeightProperty().bind(splitPane.heightProperty().divide(2).subtract(75));
-
         VBox vBox = new VBox();
-        vBox.getChildren().addAll(hBox, imageFill);
-        tab.setContent(vBox);
+        vBox.setSpacing(10);
+        vBox.setPadding(new Insets(5));
+        vBox.setAlignment(Pos.TOP_CENTER);
+
+        statusStarted.setPreserveRatio(true);
+        statusStopped.setPreserveRatio(true);
+        statusPending.setPreserveRatio(true);
+        statusStopped.fitWidthProperty().bind(splitPane.widthProperty().divide(2).subtract(100));
+        statusPending.fitWidthProperty().bind(splitPane.widthProperty().divide(2).subtract(100));
+        statusStarted.fitWidthProperty().bind(splitPane.widthProperty().divide(2).subtract(100));
+
+        ipCombobox.prefWidthProperty().bind(splitPane.widthProperty());
+        portTextField.prefWidthProperty().bind(splitPane.widthProperty());
+        certificateCombo.prefWidthProperty().bind(splitPane.widthProperty());
+        validateClientCertCheckBox.prefWidthProperty().bind(splitPane.widthProperty());
+        serverButton.prefWidthProperty().bind(splitPane.widthProperty());
+
+        vBox.getChildren().addAll(ipCombobox, portTextField, certificateCombo, validateClientCertCheckBox, serverButton);
+        VBox.setVgrow(serverButton, Priority.ALWAYS);
+
+        HBox.setHgrow(vBox, Priority.ALWAYS);
+        hBox.getChildren().addAll(vBox, statusStopped);
+        tab.setContent(hBox);
 
         startStateChecker();
         return tab;
@@ -163,30 +182,33 @@ class GeneralTab {
 
     private void checkAndSetServerStateColor() {
         if (ocppServerService.isRunning() && webServer.isRunning()) {
-            serverState.setStyle("-fx-text-fill: #0aa000;");
-            serverState.setText("Started");
             serverButton.setText("Stop");
             serverButton.setDisable(false);
             ipCombobox.setDisable(true);
             portTextField.setDisable(true);
             validateClientCertCheckBox.setDisable(true);
             certificateCombo.setDisable(true);
+            changeStatusImage(Status.STARED);
+            if (!hBox.getChildren().contains(statusStarted)) {
+                hBox.getChildren().remove(statusPending);
+                hBox.getChildren().add(statusStarted);
+            }
             serverButton.setOnAction(event -> {
+                changeStatusImage(Status.PENDING);
                 CompletableFuture.runAsync(ocppServerService::stop);
                 CompletableFuture.runAsync(webServer::shutDown);
-                serverState.setText("Stopping...");
                 serverButton.setDisable(true);
             });
         } else {
-            serverState.setStyle("-fx-text-fill: #be0000;");
-            serverState.setText("Stopped");
             serverButton.setText("Start");
             serverButton.setDisable(false);
             ipCombobox.setDisable(false);
             portTextField.setDisable(false);
             certificateCombo.setDisable(false);
+            changeStatusImage(Status.STOPPED);
             validateClientCertCheckBox.setDisable(false);
             serverButton.setOnAction(event -> {
+                changeStatusImage(Status.PENDING);
                 CompletableFuture.runAsync(() -> ocppServerService.start(ipCombobox.getValue(), Integer.parseInt(portTextField.getText())));
                 CompletableFuture.runAsync(() -> {
                     try {
@@ -195,10 +217,38 @@ class GeneralTab {
                         LOGGER.error("Can't start REST server", e);
                     }
                 });
-                serverState.setText("Starting...");
                 serverButton.setDisable(true);
             });
         }
+    }
+
+    private void changeStatusImage(Status status) {
+        Node node = hBox.getChildren().get(1);
+        ImageView statusImage = determineImage(status);
+        if (node != null && node != statusImage) {
+            hBox.getChildren().remove(node);
+            hBox.getChildren().add(statusImage);
+        }
+
+    }
+
+    private ImageView determineImage(Status status) {
+        switch (status) {
+            case STARED:
+                return statusStarted;
+            case PENDING:
+                return statusPending;
+            case STOPPED:
+                return statusStopped;
+            default:
+                return statusStopped;
+        }
+    }
+
+    enum Status {
+        STARED,
+        PENDING,
+        STOPPED;
     }
 
     private void startStateChecker() {

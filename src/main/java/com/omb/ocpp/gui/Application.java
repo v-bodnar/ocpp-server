@@ -2,11 +2,11 @@ package com.omb.ocpp.gui;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.omb.ocpp.groovy.GroovyService;
+import com.omb.ocpp.rest.WebServer;
 import com.omb.ocpp.security.certificate.api.KeystoreApi;
 import com.omb.ocpp.security.certificate.config.KeystoreCertificateConfig;
 import com.omb.ocpp.security.certificate.config.KeystoreConfigRegistry;
-import com.omb.ocpp.groovy.GroovyService;
-import com.omb.ocpp.rest.WebServer;
 import com.omb.ocpp.server.OcppServerService;
 import com.omb.ocpp.server.SslContextConfig;
 import org.apache.commons.cli.CommandLine;
@@ -21,7 +21,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 public class Application {
@@ -60,7 +65,7 @@ public class Application {
     @Inject
     private KeystoreApi keystoreApi;
 
-    private Application() {
+    public Application() {
         applicationContext.inject(this);
     }
 
