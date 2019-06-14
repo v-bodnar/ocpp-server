@@ -24,19 +24,10 @@ jar {
     manifest {
         attributes 'Main-Class': 'com.omb.ocpp.gui.Application'
     }
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
     from {
-        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
-}
-
-def currentOS = org.gradle.internal.os.OperatingSystem.current()
-def platform
-if (currentOS.isWindows()) {
-    platform = 'win'
-} else if (currentOS.isLinux()) {
-    platform = 'linux'
-} else if (currentOS.isMacOsX()) {
-    platform = 'mac'
 }
 
 dependencies {
@@ -59,9 +50,15 @@ dependencies {
     compile group: 'org.codehaus.groovy', name: 'groovy-all', version: '3.0.0-alpha-4'
     compile group: 'commons-cli', name: 'commons-cli', version: '1.4'
 
-    compile "org.openjfx:javafx-base:$javafx.version"
-    compile "org.openjfx:javafx-graphics:$javafx.version"
-    compile "org.openjfx:javafx-controls:$javafx.version"
+    runtimeOnly  "org.openjfx:javafx-base:$javafx.version:win"
+    runtimeOnly  "org.openjfx:javafx-base:$javafx.version:linux"
+    runtimeOnly  "org.openjfx:javafx-base:$javafx.version:mac"
+    runtimeOnly  "org.openjfx:javafx-graphics:$javafx.version:win"
+    runtimeOnly  "org.openjfx:javafx-graphics:$javafx.version:linux"
+    runtimeOnly  "org.openjfx:javafx-graphics:$javafx.version:mac"
+    runtimeOnly  "org.openjfx:javafx-controls:$javafx.version:win"
+    runtimeOnly  "org.openjfx:javafx-controls:$javafx.version:linux"
+    runtimeOnly  "org.openjfx:javafx-controls:$javafx.version:mac"
 
     compile 'com.github.v-bodnar.Java-OCA-OCPP:v1_6:master-SNAPSHOT'
     compile 'com.github.v-bodnar.Java-OCA-OCPP:common:master-SNAPSHOT'
