@@ -3,10 +3,18 @@ package com.omb.ocpp.security.certificate.service;
 import com.omb.ocpp.security.certificate.api.KeystoreApi;
 import com.omb.ocpp.security.certificate.config.KeystoreCertificateConfig;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.security.KeyStore;
-import java.util.*;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.omb.ocpp.security.certificate.KeystoreConstants.TRUST_STORE_UUID;
@@ -25,7 +33,7 @@ public class GetKeyStoreDetailsService {
                 getKeystoreCertificatesConfig().
                 stream().
                 filter(keystoreCertificateConfig -> !keystoreCertificateConfig.getUuid().equals(UUID.fromString(TRUST_STORE_UUID))).
-                map(config -> config.getUuid()).
+                map(KeystoreCertificateConfig::getUuid).
                 collect(Collectors.toList());
 
         return getKeyStores(keystoreUUIDs);
@@ -49,7 +57,8 @@ public class GetKeyStoreDetailsService {
         return loadKeyStore(keystoreCertificateConfig);
     }
 
-    private KeyStore loadKeyStore(KeystoreCertificateConfig config) throws Exception {
+    private KeyStore loadKeyStore(KeystoreCertificateConfig config) throws KeyStoreException, IOException,
+            CertificateException, NoSuchAlgorithmException {
         KeyStore keyStoreLocal = KeyStore.getInstance("JKS");
         try (InputStream is = Files.newInputStream(config.getKeystorePath())) {
             keyStoreLocal.load(is, config.getKeystorePassword().toCharArray());

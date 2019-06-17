@@ -4,7 +4,6 @@ import com.omb.ocpp.groovy.ConfirmationSupplier;
 import com.omb.ocpp.groovy.GroovyService;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
-import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TableColumn;

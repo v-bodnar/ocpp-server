@@ -37,6 +37,7 @@ import static com.omb.ocpp.security.certificate.KeystoreConstants.TRUST_STORE_UU
 @Service
 public class TrustStoreService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TrustStoreService.class);
+    private static final String TRUST_STORE_ERROR_MESSAGE = "Could not get certificate from TrustStore";
 
     private final KeystoreApi keystoreApi;
     private KeystoreCertificateConfig trustStoreConfig;
@@ -107,7 +108,7 @@ public class TrustStoreService {
             pemWriter.flush();
             return writer.toString();
         } catch (IOException e) {
-            LOGGER.error("Could not get certificate from TrustStore");
+            LOGGER.error(TRUST_STORE_ERROR_MESSAGE);
             return "";
         }
     }
@@ -123,16 +124,16 @@ public class TrustStoreService {
                 }
             }
         } catch (KeyStoreException e) {
-            LOGGER.error("Could not get certificate from TrustStore");
+            LOGGER.error(TRUST_STORE_ERROR_MESSAGE);
         }
         return certificates;
     }
 
     public Optional<List<String>> listAliasses() {
         try {
-            return Optional.ofNullable(Collections.list(trustStore.aliases()));
+            return Optional.of(Collections.list(trustStore.aliases()));
         } catch (KeyStoreException e) {
-            LOGGER.error("Could not get certificate from TrustStore");
+            LOGGER.error(TRUST_STORE_ERROR_MESSAGE);
             return Optional.empty();
         }
     }

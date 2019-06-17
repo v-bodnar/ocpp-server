@@ -82,18 +82,18 @@ public class Application {
     }
 
     private static void invokeCommand(Options options, CommandLine cmd, String[] args) throws Exception {
-        Map<Predicate<CommandLine>, Action> COMMANDS = new LinkedHashMap<>();
-        COMMANDS.put(line -> line.hasOption(HELP), () -> printHelp(options));
-        COMMANDS.put(line -> line.hasOption(SHOW_KEYSTORE_CONFIG), APPLICATION::showKeystoreCertificatesConfig);
-        COMMANDS.put(line -> line.hasOption(CREATE_KEYSTORE_CERTIFICATE), APPLICATION::createKeystoreCertificate);
-        COMMANDS.put(line -> line.hasOption(DELETE_KEYSTORE_CERTIFICATE), () -> APPLICATION.deleteKeystoreCertificate(cmd));
-        COMMANDS.put(line -> line.hasOption(NO_GUI_ID), () -> APPLICATION.startNoGui(cmd));
+        Map<Predicate<CommandLine>, Action> commands = new LinkedHashMap<>();
+        commands.put(line -> line.hasOption(HELP), () -> printHelp(options));
+        commands.put(line -> line.hasOption(SHOW_KEYSTORE_CONFIG), APPLICATION::showKeystoreCertificatesConfig);
+        commands.put(line -> line.hasOption(CREATE_KEYSTORE_CERTIFICATE), APPLICATION::createKeystoreCertificate);
+        commands.put(line -> line.hasOption(DELETE_KEYSTORE_CERTIFICATE), () -> APPLICATION.deleteKeystoreCertificate(cmd));
+        commands.put(line -> line.hasOption(NO_GUI_ID), () -> APPLICATION.startNoGui(cmd));
 
-        Action action = COMMANDS.
+        Action action = commands.
                 entrySet().
                 stream().
                 filter(e -> e.getKey().test(cmd)).
-                map(e -> e.getValue()).
+                map(Map.Entry::getValue).
                 findFirst().
                 orElseGet(() -> () -> GuiApplication.main(args));
 
@@ -148,6 +148,7 @@ public class Application {
 
     private static void printHelp(Options options) {
         HelpFormatter formatter = new HelpFormatter();
+        formatter.setWidth(150);
         formatter.printHelp("ocpp-server", options);
     }
 

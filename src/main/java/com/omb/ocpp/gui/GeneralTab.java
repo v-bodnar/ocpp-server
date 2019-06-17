@@ -5,7 +5,9 @@ import com.omb.ocpp.security.certificate.api.KeystoreApi;
 import com.omb.ocpp.server.OcppServerService;
 import com.omb.ocpp.server.SslContextConfig;
 import javafx.application.Platform;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -43,7 +45,12 @@ class GeneralTab {
     private static final Logger LOGGER = LoggerFactory.getLogger(GeneralTab.class);
     private static final Pattern IP_ADDRESS_PATTERN = Pattern.compile("((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(?:\\.|$)){4}");
     private static final int DEFAULT_OCPP_PORT = 8887;
+    private static final String STOPPED_IMAGE = "/images/ev_stopped.png";
+    private static final String PENDING_IMAGE = "/images/ev_pending.png";
+    private static final String STARTED_IMAGE = "/images/ev_started.png";
+    private static final String CERTIFICATE_ERROR = "Could not retrieve certificates data";
 
+    private final Tab tab = new Tab();
     private final ComboBox<String> ipCombobox = new ComboBox<>();
     private final ComboBox<X509Certificate> certificateCombo = new ComboBox<>();
     private final CheckBox validateClientCertCheckBox = new CheckBox("Validate client certificate");
@@ -51,14 +58,9 @@ class GeneralTab {
     private final Button serverButton = new Button("Start");
     private final HBox hBox = new HBox();
 
-    private final ImageView statusStopped = new ImageView(new Image(getClass().getResourceAsStream("/images" +
-            "/ev_stopped.png")));
-    private final ImageView statusPending = new ImageView(new Image(getClass().getResourceAsStream("/images" +
-            "/ev_pending.png")));
-    private final ImageView statusStarted = new ImageView(new Image(getClass().getResourceAsStream("/images" +
-            "/ev_started.png")));
-
-    private Status status = Status.STOPPED;
+    private final ImageView statusStoppedImage = new ImageView(new Image(getClass().getResourceAsStream(STOPPED_IMAGE)));
+    private final ImageView statusPendingImage = new ImageView(new Image(getClass().getResourceAsStream(PENDING_IMAGE)));
+    private final ImageView statusStartedImage = new ImageView(new Image(getClass().getResourceAsStream(STARTED_IMAGE)));
 
     private final OcppServerService ocppServerService;
     private final WebServer webServer;
@@ -71,19 +73,9 @@ class GeneralTab {
     }
 
     Tab constructTab(SplitPane splitPane) {
-        Tab tab = new Tab();
         tab.setText("General");
         tab.setClosable(false);
-        tab.setOnSelectionChanged(event -> {
-            if (event.getTarget().equals(tab)) {
-                try {
-                    certificateCombo.setItems(FXCollections.observableArrayList(keystoreApi.getAllServerCertificates()));
-                    certificateCombo.getItems().add(null);
-                } catch (Exception e) {
-                    LOGGER.error("Could not retrieve certificates data", e);
-                }
-            }
-        });
+        tab.setOnSelectionChanged(this::tabChangeEventHandler);
 
         validateClientCertCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (ocppServerService.getSslContextConfig() != null) {
@@ -92,52 +84,9 @@ class GeneralTab {
         });
 
 
-        certificateCombo.setConverter(new StringConverter<>() {
-            @Override
-            public String toString(X509Certificate certificate) {
-                if (certificate == null) {
-                    return "Select Server Certificate";
-                } else {
-                    return String.format("%s - %s", certificate.getIssuerDN(), certificate.getNotBefore());
-                }
-            }
+        certificateCombo.setConverter(certificateConverter);
 
-            @Override
-            public X509Certificate fromString(String string) {
-                try {
-                    Optional<X509Certificate> certificate = keystoreApi.getAllServerCertificates().stream()
-                            .filter(x509Certificate -> x509Certificate.getIssuerDN().toString().equals(string.split(" ")[0]))
-                            .findFirst();
-                    if (certificate.isPresent()) {
-                        return certificate.get();
-                    } else {
-                        LOGGER.error("Could not retrieve certificates data");
-                        return null;
-                    }
-                } catch (Exception e) {
-                    LOGGER.error("Could not retrieve certificates data", e);
-                    return null;
-                }
-            }
-        });
-
-        certificateCombo.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue == null) {
-                ocppServerService.setSslContextConfig(null);
-            } else {
-                try {
-                    UUID keystoreUUID = keystoreApi.getKeyStoreUUIDByCertificate(newValue);
-                    SslContextConfig sslContextConfig = new SslContextConfig().
-                            setSslContext(keystoreApi.initializeSslContext(keystoreUUID)).
-                            setClientAuthenticationNeeded(validateClientCertCheckBox.isSelected()).
-                            setClientAuthenticationNeeded(false);
-                    ocppServerService.setSslContextConfig(sslContextConfig);
-                } catch (Exception e) {
-                    LOGGER.error("Could not retrieve certificates data");
-                }
-
-            }
-        });
+        certificateCombo.getSelectionModel().selectedItemProperty().addListener(this::certificatesComboValueChanged);
 
         serverButton.setPrefWidth(100);
 
@@ -156,12 +105,12 @@ class GeneralTab {
         vBox.setPadding(new Insets(5));
         vBox.setAlignment(Pos.TOP_CENTER);
 
-        statusStarted.setPreserveRatio(true);
-        statusStopped.setPreserveRatio(true);
-        statusPending.setPreserveRatio(true);
-        statusStopped.fitWidthProperty().bind(splitPane.widthProperty().divide(2).subtract(100));
-        statusPending.fitWidthProperty().bind(splitPane.widthProperty().divide(2).subtract(100));
-        statusStarted.fitWidthProperty().bind(splitPane.widthProperty().divide(2).subtract(100));
+        statusStartedImage.setPreserveRatio(true);
+        statusStoppedImage.setPreserveRatio(true);
+        statusPendingImage.setPreserveRatio(true);
+        statusStoppedImage.fitWidthProperty().bind(splitPane.widthProperty().divide(2).subtract(100));
+        statusPendingImage.fitWidthProperty().bind(splitPane.widthProperty().divide(2).subtract(100));
+        statusStartedImage.fitWidthProperty().bind(splitPane.widthProperty().divide(2).subtract(100));
 
         ipCombobox.prefWidthProperty().bind(splitPane.widthProperty());
         portTextField.prefWidthProperty().bind(splitPane.widthProperty());
@@ -173,7 +122,7 @@ class GeneralTab {
         VBox.setVgrow(serverButton, Priority.ALWAYS);
 
         HBox.setHgrow(vBox, Priority.ALWAYS);
-        hBox.getChildren().addAll(vBox, statusStopped);
+        hBox.getChildren().addAll(vBox, statusStoppedImage);
         tab.setContent(hBox);
 
         startStateChecker();
@@ -189,9 +138,9 @@ class GeneralTab {
             validateClientCertCheckBox.setDisable(true);
             certificateCombo.setDisable(true);
             changeStatusImage(Status.STARED);
-            if (!hBox.getChildren().contains(statusStarted)) {
-                hBox.getChildren().remove(statusPending);
-                hBox.getChildren().add(statusStarted);
+            if (!hBox.getChildren().contains(statusStartedImage)) {
+                hBox.getChildren().remove(statusPendingImage);
+                hBox.getChildren().add(statusStartedImage);
             }
             serverButton.setOnAction(event -> {
                 changeStatusImage(Status.PENDING);
@@ -235,20 +184,20 @@ class GeneralTab {
     private ImageView determineImage(Status status) {
         switch (status) {
             case STARED:
-                return statusStarted;
+                return statusStartedImage;
             case PENDING:
-                return statusPending;
+                return statusPendingImage;
             case STOPPED:
-                return statusStopped;
+                return statusStoppedImage;
             default:
-                return statusStopped;
+                return statusStoppedImage;
         }
     }
 
     enum Status {
         STARED,
         PENDING,
-        STOPPED;
+        STOPPED
     }
 
     private void startStateChecker() {
@@ -280,5 +229,65 @@ class GeneralTab {
             }
         }
         return availableIpAddresses;
+    }
+
+    private StringConverter<X509Certificate> certificateConverter = new StringConverter<>() {
+        @Override
+        public String toString(X509Certificate certificate) {
+            if (certificate == null) {
+                return "Select Server Certificate";
+            } else {
+                return String.format("%s - %s", certificate.getIssuerDN(), certificate.getNotBefore());
+            }
+        }
+
+        @Override
+        public X509Certificate fromString(String string) {
+            try {
+                Optional<X509Certificate> certificate = keystoreApi.getAllServerCertificates().stream()
+                        .filter(x509Certificate -> x509Certificate.getIssuerDN().toString().equals(string.split(" ")[0]))
+                        .findFirst();
+                if (certificate.isPresent()) {
+                    return certificate.get();
+                } else {
+                    LOGGER.error(CERTIFICATE_ERROR);
+                    return null;
+                }
+            } catch (Exception e) {
+                LOGGER.error(CERTIFICATE_ERROR, e);
+                return null;
+            }
+        }
+    };
+
+
+    private void tabChangeEventHandler(Event event) {
+        if (event.getTarget().equals(tab)) {
+            try {
+                certificateCombo.setItems(FXCollections.observableArrayList(keystoreApi.getAllServerCertificates()));
+                certificateCombo.getItems().add(null);
+            } catch (Exception e) {
+                LOGGER.error("Could not retrieve certificates data", e);
+            }
+        }
+    }
+
+    private void certificatesComboValueChanged(ObservableValue<? extends X509Certificate> observable,
+                                               X509Certificate oldValue,
+                                               X509Certificate newValue) {
+        if (newValue == null) {
+            ocppServerService.setSslContextConfig(null);
+        } else {
+            try {
+                UUID keystoreUUID = keystoreApi.getKeyStoreUUIDByCertificate(newValue);
+                SslContextConfig sslContextConfig = new SslContextConfig().
+                        setSslContext(keystoreApi.initializeSslContext(keystoreUUID)).
+                        setClientAuthenticationNeeded(validateClientCertCheckBox.isSelected()).
+                        setClientAuthenticationNeeded(false);
+                ocppServerService.setSslContextConfig(sslContextConfig);
+            } catch (Exception e) {
+                LOGGER.error("Could not retrieve certificates data");
+            }
+        }
     }
 }
