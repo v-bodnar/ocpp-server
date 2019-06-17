@@ -19,22 +19,36 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.*;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SecureRandom;
+import java.security.Security;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Objects;
+import java.util.Random;
+import java.util.UUID;
 
 import static com.omb.ocpp.security.certificate.KeystoreConstants.OCPP_SERVER_CERT;
 import static com.omb.ocpp.security.certificate.KeystoreConstants.OCPP_SERVER_PRIVATE_KEY;
@@ -73,12 +87,14 @@ public class CreateKeystoreCertificateService {
                 build();
     }
 
-    private void createJavaKeyStoreWithCertificate(KeystoreCertificateConfig keystoreCertificateConfig) throws Exception {
+    private void createJavaKeyStoreWithCertificate(KeystoreCertificateConfig keystoreCertificateConfig) throws CertificateException,
+            NoSuchAlgorithmException, KeyStoreException, IOException, NoSuchProviderException, OperatorCreationException {
         KeyStore keyStoreLocal = createJavaKeyStore(keystoreCertificateConfig);
         generateCertificate(keyStoreLocal, keystoreCertificateConfig.getKeystorePassword().toCharArray(), keystoreCertificateConfig.getKeystorePath());
     }
 
-    private KeyStore createJavaKeyStore(KeystoreCertificateConfig keystoreCertificateConfig) throws Exception {
+    private KeyStore createJavaKeyStore(KeystoreCertificateConfig keystoreCertificateConfig) throws IOException,
+            KeyStoreException, CertificateException, NoSuchAlgorithmException {
         Files.createFile(keystoreCertificateConfig.getKeystorePath());
         KeyStore keyStoreLocal = KeyStore.getInstance("JKS");
         keyStoreLocal.load(null, null);
@@ -88,7 +104,8 @@ public class CreateKeystoreCertificateService {
         return keyStoreLocal;
     }
 
-    private void generateCertificate(KeyStore keyStore, char[] password, Path keyStorePath) throws Exception {
+    private void generateCertificate(KeyStore keyStore, char[] password, Path keyStorePath) throws IOException,
+            NoSuchAlgorithmException, OperatorCreationException, CertificateException, NoSuchProviderException, KeyStoreException {
 
         Security.setProperty("crypto.policy", "unlimited");
         Security.addProvider(new BouncyCastleProvider());
@@ -144,7 +161,7 @@ public class CreateKeystoreCertificateService {
         }
     }
 
-    private KeyPair generateKeyPair() throws Exception {
+    private KeyPair generateKeyPair() throws NoSuchAlgorithmException {
         KeyPairGenerator rsa = KeyPairGenerator.getInstance("RSA");
         rsa.initialize(2048, new SecureRandom());
         return rsa.genKeyPair();

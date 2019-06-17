@@ -25,7 +25,7 @@ git clone https://github.com/v-bodnar/ocpp-server.git
 **Build:** 
 ```
 cd ocpp-server
-gradle clean build
+gradle build
 ```
 
 **Usage:**  
@@ -41,8 +41,15 @@ java -jar ocpp-server-0.1.jar <arguments>
  combination with -nogui  
  - -ocppPort,--ocppPort <arg>  port on which OCPP server will accept connections, default:8887, works in combination 
  with -nogui  
- - --restPort <arg>  port on which REST server will accept connections, default:9090, works in combination with -nogui  
-  
+ - --restPort <arg>  port on which REST server will accept connections, default:9090, works in combination with -nogui
+ - -keystoreUUID,--keystoreUUID <arg>                               run ssl server with keystore for defined keystore
+   uuid  
+ - -clientAuthenticationNeeded,--clientAuthenticationNeeded <arg>   should server needed for client certificate
+ - -keystoreCiphers,--keystoreCiphers <arg>                         list of keystore ciphers separated by comma
+ - -createKeystoreCertificate                                       Create new keystore certificate
+ - -deleteKeystoreCertificate <arg>                                 Delete keystore certificate
+ - -showKeystoreConfig                                              Show keystore config file content
+
 ## Changing server behavior using Groovy
 **$GROOVY_PATH = $LITHOS_HOME/ocpp/groovy/**  
 Groovy files will be created under path: **$GROOVY_PATH**  
@@ -55,28 +62,53 @@ you can change responses that ocpp server sends to clients. Using GUI reload tho
 Also you can upload .groovy files using REST API, it will replace files with the same names and automatically load 
 classes to classloader
 
+## Secure connection using ssl
+**SSL_PATH = $LITHOS_HOME/ocpp/ssl**  
+During startup Lithos will create trust store SSL_PATH/trust-store.jks which is used for storing clients certificates
+During startup Lithos will create file SSL_PATH/keystore-certificates.config which is used for storing information 
+about key-stores that contain server certificate, each server certificate will be stored in the separate key-store. 
+Information about trust-store is also stored in this file.
 
-## Setting up ssl configuration
-Create file **$LITHOS_HOME\ocpp\ssl\ssl.properties** with content:
+If you want to use manually generated server certificate just add key-store that contains it to SSL_PATH and add 
+information to keystore-certificates.config file. Example:
 ```
-keystore.password=yourKeystorePassword  
-keystore.protocol=TLSv1.1|TLSv1.2  
-client.authentication.needed=false|true  
-keystore.ciphers=define encryption  
+{
+  "keystoreCertificatesConfig": [
+    {
+      "uuid": "b1ca37d9-3ee9-4b22-95d3-e976f02ff3fd",
+      "keystorePassword": "f9a42ef7-7ce5-4dc3-8b15-d139f4dcd737",
+      "keystorePath": "C:\\Work\\Shared\\LITHOS_HOME\\ocpp\\ssl\\b1ca37d9-3ee9-4b22-95d3-e976f02ff3fd.jks",
+      "keystoreProtocol": "TLSv1.2"
+    }
+  ]
+}    
 ```
 
-If file ssl.properties not exists Server run without any ssl context
+**GUI mode:**
+1. Go to tab "Server Certificates" click button "Generate certificate", this will generate new server certificate, 
+table above will show information about new certificate, there you also can download it or delete.
+2. If  client validation is needed go to tab "Client Certificates", click button "Upload certificate" and specify 
+clients certificate. It will be added to the trust-store and table will be refreshed showing clients certificates in 
+the trust store
+3. Go to tab "General", select server certificate that you want to use, check "Validate client certificate" if needed.
 
-Server will generate self-signed certificate during startup, you can download it using GUI or REST API. Client have to
- import this certificate to truststore or allow untrusted certificates.  
- 
-If **client.authentication.needed** was set to **true**, clients certificate has to be added to truststore. This can be 
-done 
-using **JDK keytool**. GUI or REST API also support clients certificate upload with the limit that only single 
-certificate 
-can 
-be uploaded.
- 
+**NO GUI mode:**
+* To create server certificate 
+```
+java -jar ocpp-server-0.1.jar -createKeystoreCertificate
+```
+* To list server certificates ids
+```
+java -jar ocpp-server-0.1.jar -showKeystoreConfig
+```
+* To run using one of certificates
+``` 
+-jar ocpp-server-0.1.jar -nogui -keystoreUUID uuid-shown-by-previous-command -clientAuthenticationNeeded 
+```
+
+REST API also exposes CRUD methods for managing server and client certificates. In NO GUI mode client certificates can 
+only be uploaded using REST API or by manually adding certificate to SSL_PATH/trust-store.jks.
+
 ## REST API 
 ```
     @Produces(MediaType.APPLICATION_JSON)  
@@ -135,15 +167,27 @@ be uploaded.
     @Path("upload-confirmation-supplier")
     public Response uploadConfirmationSupplier(@FormDataParam("file") InputStream uploadedInputStream,
                                                @FormDataParam("file") FormDataContentDisposition fileDetail)
-
+    
+    @GET
+    @Path("list-trust-store-aliases")
+    public Response listClientCertificate()    
+    
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Path("upload-client-cert")
     public Response uploadClientCertificate(@FormDataParam("file") InputStream uploadedInputStream,
                                             @FormDataParam("file") FormDataContentDisposition fileDetail)
-                                            
+                                                
+    @POST
+    @Path("generate-server-cert")
+    public Response generateServerCertificate()
+    
     @GET
-    @Path("download-server-cert")
-    public Response downloadServerCertificate()
+    @Path("get-keystore-config")
+    public Response getKeyStoreConfig()
+    
+    @DELETE
+    @Path("delete-server-cert")
+    public Response deleteServerCertificate(@QueryParam("uuid") String uuid)    
 
 ```

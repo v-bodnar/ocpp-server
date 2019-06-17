@@ -7,6 +7,7 @@ import com.omb.ocpp.security.certificate.api.KeystoreApi;
 import com.omb.ocpp.security.certificate.config.KeystoreCertificateConfig;
 import com.omb.ocpp.security.certificate.config.KeystoreConfigRegistry;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Objects;
 import java.util.UUID;
@@ -29,7 +30,7 @@ public class DeleteKeystoreCertificateConfigService {
         Files.delete(keystoreCertificateConfig.getKeystorePath());
     }
 
-    private void writeConfigToFile(KeystoreConfigRegistry keystoreConfigRegistry) throws Exception {
+    private void writeConfigToFile(KeystoreConfigRegistry keystoreConfigRegistry) throws IOException {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String configAsJson = gson.toJson(keystoreConfigRegistry);
         Files.writeString(KeystoreConstants.KEYSTORE_CERTIFICATE_CONFIG_PATH, configAsJson);

@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static com.omb.ocpp.security.certificate.KeystoreConstants.TRUST_STORE_UUID;
 
