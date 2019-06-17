@@ -64,8 +64,8 @@ classes to classloader
 
 ## Secure connection using ssl
 **SSL_PATH = $LITHOS_HOME/ocpp/ssl**  
-During startup Lithos will create trust store SSL_PATH/trust-store.jks which is used for storing clients certificates
-During startup Lithos will create file SSL_PATH/keystore-certificates.config which is used for storing information 
+During startup Ocpp-server will create trust store SSL_PATH/trust-store.jks which is used for storing clients certificates
+During startup Ocpp-server will create file SSL_PATH/keystore-certificates.config which is used for storing information 
 about key-stores that contain server certificate, each server certificate will be stored in the separate key-store. 
 Information about trust-store is also stored in this file.
 
