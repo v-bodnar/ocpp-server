@@ -180,7 +180,7 @@ public class RestAPI {
     @GET
     @Path("list-trust-store-aliases")
     public Response listClientCertificate() {
-        Optional<List<String>> aliases = trustStoreService.listAliasses();
+        Optional<List<String>> aliases = trustStoreService.listAliases();
         if (aliases.isPresent()) {
             return Response.ok(aliases.get()).build();
         } else {

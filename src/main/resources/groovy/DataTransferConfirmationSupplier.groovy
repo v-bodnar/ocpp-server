@@ -1,7 +1,8 @@
-package com.omb.ocpp.groovy
+package com.omb.ocpp.groovy.supplier
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import com.omb.ocpp.groovy.ConfirmationSupplier
 import com.omb.ocpp.gui.Application
 import com.omb.ocpp.server.OcppServerService
 import eu.chargetime.ocpp.JSONCommunicator

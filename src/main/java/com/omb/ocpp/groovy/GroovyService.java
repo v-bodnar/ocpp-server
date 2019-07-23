@@ -3,6 +3,10 @@ package com.omb.ocpp.groovy;
 import eu.chargetime.ocpp.model.Confirmation;
 import eu.chargetime.ocpp.model.Request;
 import groovy.lang.GroovyClassLoader;
+import groovy.lang.GroovyRuntimeException;
+import org.apache.tools.ant.util.FileUtils;
+import org.codehaus.groovy.control.CompilationUnit;
+import org.codehaus.groovy.tools.GroovyClass;
 import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +30,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,8 +44,13 @@ import static com.omb.ocpp.gui.Application.LITHOS_HOME;
 @Service
 public class GroovyService {
     private static final Logger LOGGER = LoggerFactory.getLogger(GroovyService.class);
-    private static final Path SCRIPTS_FOLDER = Paths.get(LITHOS_HOME, "ocpp", "groovy");
-    private static final boolean USE_SCRIPTS_FOLDER = true; //set to false to debug scripts from resources
+    private static final Path SCRIPTS_FOLDER = Paths.get(LITHOS_HOME, "ocpp", "groovy","src","main","groovy","com",
+            "omb","ocpp", "groovy");
+    private static final Path SUPPLIERS_FOLDER = Paths.get(LITHOS_HOME, "ocpp", "groovy","src","main","groovy","com",
+            "omb","ocpp", "groovy", "supplier");
+    private static final Path GROOVY_PROJECT_FOLDER = Paths.get(LITHOS_HOME, "ocpp", "groovy");
+    private static final String BUILD_GRADLE = "build.gradle";
+    private static final String SETTINGS_GRADLE = "settings.gradle";
     private static final String CONFIRMATION_SUPPLIER_GROOVY_SUFFIX = "ConfirmationSupplier.groovy";
     private final Map<Class<? extends Request>, ConfirmationSupplier<Request, Confirmation>> confirmationSuppliers =
             new HashMap<>();
@@ -53,9 +62,10 @@ public class GroovyService {
         try {
             if (!SCRIPTS_FOLDER.toFile().exists()) {
                 Files.createDirectories(SCRIPTS_FOLDER);
+
             }
             createGroovyFilesFromResources();
-            loadConfirmationSuppliers();
+            reloadGroovyFiles();
         } catch (IOException | URISyntaxException e) {
             LOGGER.error("Could not load groovy scripts", e);
         }
@@ -63,10 +73,20 @@ public class GroovyService {
 
     private void createGroovyFilesFromResources() throws IOException, URISyntaxException {
         URL innerResourceFolderUrl = ClassLoader.getSystemClassLoader().getResource("groovy");
+        URI gradleBuild =
+                Optional.ofNullable(ClassLoader.getSystemClassLoader().getResource("groovy/" + BUILD_GRADLE))
+                        .orElseThrow().toURI();
+        URI settingsBuild =
+                Optional.ofNullable(ClassLoader.getSystemClassLoader().getResource("groovy/" + SETTINGS_GRADLE))
+                        .orElseThrow().toURI();
+
         if (innerResourceFolderUrl == null) {
             LOGGER.error("Could not find groovy scripts in resources");
             return;
         }
+
+        LOGGER.debug("build.gradle path: {}", gradleBuild.toString());
+        LOGGER.debug("settings.gradle path: {}", gradleBuild.toString());
 
         // -------- __@      __@       __@       __@      __~@
         // ----- _`\<,_    _`\<,_    _`\<,_     _`\<,_    _`\<,_
@@ -79,16 +99,19 @@ public class GroovyService {
             final String[] array = uri.toString().split("!");
             try (final FileSystem fs = FileSystems.newFileSystem(URI.create(array[0]), new HashMap<>());
                  Stream<Path> stream = Files.walk(fs.getPath(array[1]))) {
-                stream.filter(path -> path.toString().endsWith(CONFIRMATION_SUPPLIER_GROOVY_SUFFIX) && Files.isRegularFile(path))
+                stream.filter(path -> (path.toString().endsWith(CONFIRMATION_SUPPLIER_GROOVY_SUFFIX) ||
+                        path.toString().endsWith(BUILD_GRADLE)) && Files.isRegularFile(path))
                         .forEach(path -> createGroovyFile(path,
-                                Paths.get(SCRIPTS_FOLDER.toString(), path.getFileName().toString())));
+                                Paths.get(SUPPLIERS_FOLDER.toString(), path.getFileName().toString())));
             }
         } else {
             try (Stream<Path> stream = Files.walk(Paths.get(uri))) {
-                stream.filter(path -> path.toString().endsWith(CONFIRMATION_SUPPLIER_GROOVY_SUFFIX) && Files.isRegularFile(path))
+                stream.filter(path -> path.toString().endsWith(CONFIRMATION_SUPPLIER_GROOVY_SUFFIX) && Files.isRegularFile(path) )
                         .forEach(path -> createGroovyFile(path,
-                                Paths.get(SCRIPTS_FOLDER.toString(), path.getFileName().toString())));
+                                Paths.get(SUPPLIERS_FOLDER.toString(), path.getFileName().toString())));
             }
+            createGroovyFile(Paths.get(gradleBuild), GROOVY_PROJECT_FOLDER.resolve(BUILD_GRADLE));
+            createGroovyFile(Paths.get(settingsBuild), GROOVY_PROJECT_FOLDER.resolve(SETTINGS_GRADLE));
         }
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     }
@@ -99,25 +122,9 @@ public class GroovyService {
             try (ReadableByteChannel src = Channels.newChannel(Files.newInputStream(source));
                  FileChannel dest = new FileOutputStream(destination.toFile()).getChannel()) {
                 dest.transferFrom(src, 0, Integer.MAX_VALUE);
-                loadGroovyClass(source, destination);
             } catch (IOException e) {
                 LOGGER.error(String.format("Could not create scripts file %s", source.getFileName()), e);
             }
-        } else if (Files.isRegularFile(source)) {
-            LOGGER.debug("Loading confirmation supplier {}", destination);
-            loadGroovyClass(source, destination);
-        }
-    }
-
-    private void loadGroovyClass(Path source, Path destination) {
-        try {
-            if (USE_SCRIPTS_FOLDER) {
-                groovyClassLoader.parseClass(destination.toFile());
-            } else {
-                groovyClassLoader.parseClass(source.toFile());
-            }
-        } catch (IOException e) {
-            LOGGER.error(String.format("Could not load script %s", source.getFileName()), e);
         }
     }
 
@@ -125,67 +132,66 @@ public class GroovyService {
         confirmationSuppliers.clear();
         groovyClassLoader.clearCache();
 
-        if (!USE_SCRIPTS_FOLDER) {
-            LOGGER.error("Reloading of groovy classes works only with USE_SCRIPTS_FOLDER = true, change it in " +
-                    "GroovyService class");
-            return;
-        }
-
-        try (Stream<Path> stream = Files.walk(SCRIPTS_FOLDER)) {
-            stream.filter(path -> path.toString().endsWith(CONFIRMATION_SUPPLIER_GROOVY_SUFFIX) && Files.isRegularFile(path))
-                    .forEach(path -> {
-                        try {
-                            Class clazz = groovyClassLoader.parseClass(path.toFile());
-                            LOGGER.info("{} - reloaded", clazz.getSimpleName());
-                        } catch (IOException e) {
-                            LOGGER.error(String.format("Could not load script %s", path.getFileName()), e);
-                        }
-                    });
-        } catch (IOException e) {
-            LOGGER.error(String.format("Can't walk path: %s", SCRIPTS_FOLDER), e);
-        }
-
-        loadConfirmationSuppliers();
-    }
-
-    private void loadConfirmationSuppliers() {
-        Arrays.stream(groovyClassLoader.getLoadedClasses())
+        //this will compile all groovy files
+        List<Class> classes = compileGroovyFiles();
+        classes.stream()
                 .filter(aClass -> aClass.getGenericInterfaces().length != 0
                         && aClass.getGenericInterfaces()[0] instanceof ParameterizedType
-                        && ((ParameterizedType) aClass.getGenericInterfaces()[0]).getRawType().equals(ConfirmationSupplier.class)
-                )
+                        && ((ParameterizedType) aClass.getGenericInterfaces()[0]).getRawType().equals(ConfirmationSupplier.class))
                 .forEach(this::putToCache);
+
         groovyCacheChangedListener.accept(null);
     }
 
     public void uploadGroovyScript(InputStream inputStream, String scriptName) throws Exception {
-        if (USE_SCRIPTS_FOLDER) {
-            Path destination = Paths.get(SCRIPTS_FOLDER.toString(), scriptName);
-            LOGGER.debug("Replacing file {}", destination);
-            Files.deleteIfExists(destination);
-            try (ReadableByteChannel src = Channels.newChannel(inputStream);
-                 FileChannel dest = new FileOutputStream(destination.toFile()).getChannel()) {
-                dest.transferFrom(src, 0, Integer.MAX_VALUE);
-            }
+        Path destination = Paths.get(SCRIPTS_FOLDER.toString(), scriptName);
+        LOGGER.debug("Replacing file {}", destination);
+        Files.deleteIfExists(destination);
+        try (ReadableByteChannel src = Channels.newChannel(inputStream);
+             FileChannel dest = new FileOutputStream(destination.toFile()).getChannel()) {
+            dest.transferFrom(src, 0, Integer.MAX_VALUE);
+        }
 
-            Class uploadedClass = groovyClassLoader.parseClass(destination.toFile());
-            if (uploadedClass.getGenericInterfaces().length != 0 &&
-                    uploadedClass.getGenericInterfaces()[0] instanceof ParameterizedType
-                    && ((ParameterizedType) uploadedClass.getGenericInterfaces()[0]).getRawType().equals(ConfirmationSupplier.class)) {
-                putToCache(uploadedClass);
-                groovyCacheChangedListener.accept(null);
-            } else {
-                throw new InvalidClassException(String.format("Could not load class from file %s, check that class implements " +
-                        "ConfirmationSupplier<REQUEST extends Request, RESPONSE extends Confirmation>", destination));
-            }
+        Class uploadedClass = groovyClassLoader.parseClass(destination.toFile());
+        if (uploadedClass.getGenericInterfaces().length != 0 &&
+                uploadedClass.getGenericInterfaces()[0] instanceof ParameterizedType
+                && ((ParameterizedType) uploadedClass.getGenericInterfaces()[0]).getRawType().equals(ConfirmationSupplier.class)) {
+            putToCache(uploadedClass);
+            groovyCacheChangedListener.accept(null);
+        } else {
+            throw new InvalidClassException(String.format("Could not load class from file %s, check that class implements " +
+                    "ConfirmationSupplier<REQUEST extends Request, RESPONSE extends Confirmation>", destination));
         }
     }
 
+    private List<Class> compileGroovyFiles() {
+        List<Class> compiledClasses = new LinkedList<>();
+        CompilationUnit compileUnit = new CompilationUnit(groovyClassLoader);
+        try (Stream<Path> stream = Files.walk(SCRIPTS_FOLDER)) {
+            stream.filter(path -> path.toString().endsWith(".groovy") && Files.isRegularFile(path))
+                    .forEach(path -> {
+                        LOGGER.debug("Adding file for compilation: {}", path);
+                        compileUnit.addSource(path.toFile());
+                    });
+        } catch (IOException | GroovyRuntimeException e) {
+            LOGGER.error(String.format("Can't walk path: %s", SCRIPTS_FOLDER), e);
+        }
+        compileUnit.compile();
+
+        for (Object compileClass : compileUnit.getClasses()) {
+            GroovyClass groovyClass = (GroovyClass) compileClass;
+            byte[] compiledScriptBytes = groovyClass.getBytes();
+            compiledClasses.add(compileUnit.getClassLoader().defineClass(groovyClass.getName(), compiledScriptBytes));
+        }
+
+        return compiledClasses;
+    }
+
     @SuppressWarnings("unchecked")
-    private void putToCache(Class aClass) {
+    private void putToCache(Class<ConfirmationSupplier> aClass) {
         try {
             confirmationSuppliers.put((Class<? extends Request>) ((ParameterizedType) aClass.getGenericInterfaces()[0]).getActualTypeArguments()[0],
-                    (ConfirmationSupplier) aClass.getConstructor().newInstance());
+                    aClass.getConstructor().newInstance());
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             LOGGER.error(String.format("Could not instantiate Confirmation supplier: %s", aClass), e);
         }

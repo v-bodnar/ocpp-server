@@ -2,6 +2,7 @@ package com.omb.ocpp.server;
 
 import com.omb.ocpp.security.BaseWssFactoryBuilderWrapper;
 import com.omb.ocpp.server.handler.CoreEventHandler;
+import com.omb.ocpp.server.handler.CustomEventHandler;
 import com.omb.ocpp.server.handler.FirmwareManagementEventHandler;
 import eu.chargetime.ocpp.JSONConfiguration;
 import eu.chargetime.ocpp.JSONServer;
@@ -41,6 +42,7 @@ public class OcppServerService {
     private Profile firmwareProfile;
     private Profile remoteTriggerProfile;
     private Profile localAuthListProfile;
+    private Profile customProfile;
     private SslContextConfig sslContextConfig;
 
     @Inject
@@ -50,6 +52,7 @@ public class OcppServerService {
         this.firmwareProfile = new ServerFirmwareManagementProfile(firmwareManagementEventHandler);
         this.remoteTriggerProfile = new ServerRemoteTriggerProfile();
         this.localAuthListProfile = new ServerLocalAuthListProfile();
+        this.customProfile = new CustomProfile(new CustomEventHandler());
     }
 
     public void start(String ip, int port) {
@@ -67,6 +70,7 @@ public class OcppServerService {
         server.addFeatureProfile(firmwareProfile);
         server.addFeatureProfile(remoteTriggerProfile);
         server.addFeatureProfile(localAuthListProfile);
+        server.addFeatureProfile(coreProfile);
 
         server.open(ip, port, new ServerEvents() {
             @Override

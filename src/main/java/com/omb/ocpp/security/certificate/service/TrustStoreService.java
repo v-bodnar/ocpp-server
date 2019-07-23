@@ -129,7 +129,7 @@ public class TrustStoreService {
         return certificates;
     }
 
-    public Optional<List<String>> listAliasses() {
+    public Optional<List<String>> listAliases() {
         try {
             return Optional.of(Collections.list(trustStore.aliases()));
         } catch (KeyStoreException e) {
