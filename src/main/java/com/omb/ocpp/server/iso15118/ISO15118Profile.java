@@ -2,6 +2,7 @@ package com.omb.ocpp.server.iso15118;
 
 import com.omb.ocpp.server.handler.ISO15118EventHandler;
 import com.omb.ocpp.server.iso15118.dto.AuthorizeRequest;
+import com.omb.ocpp.server.iso15118.dto.Get15118EVCertificateRequest;
 import eu.chargetime.ocpp.feature.Feature;
 import eu.chargetime.ocpp.feature.ProfileFeature;
 import eu.chargetime.ocpp.feature.profile.Profile;
@@ -19,7 +20,8 @@ public class ISO15118Profile implements Profile {
     private ArrayList<Feature> features = new ArrayList();
 
     public ISO15118Profile(ISO15118EventHandler eventHandler) {
-        this.features.add(new ISO15118Feature(this));
+        this.features.add(new AuthorizeFeature(this));
+        this.features.add(new Get15118EVCertificateFeature(this));
         this.eventHandler = eventHandler;
     }
 
@@ -32,6 +34,8 @@ public class ISO15118Profile implements Profile {
     public Confirmation handleRequest(UUID uuid, Request request) {
         if (request instanceof AuthorizeRequest) {
             return this.eventHandler.handleAuthorizeRequest(uuid, (AuthorizeRequest) request);
+        } else if (request instanceof Get15118EVCertificateRequest) {
+            return this.eventHandler.handleGetCertificateRequest(uuid, (Get15118EVCertificateRequest) request);
         } else {
             LOGGER.error("Unknown message for custom Feature arrived");
             return null;

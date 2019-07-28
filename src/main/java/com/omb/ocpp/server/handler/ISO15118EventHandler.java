@@ -3,6 +3,7 @@ package com.omb.ocpp.server.handler;
 import com.omb.ocpp.groovy.GroovyService;
 import com.omb.ocpp.server.iso15118.dto.AuthorizeRequest;
 import com.omb.ocpp.server.iso15118.dto.AuthorizeResponse;
+import com.omb.ocpp.server.iso15118.dto.Get15118EVCertificateRequest;
 import eu.chargetime.ocpp.JSONCommunicator;
 import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
@@ -25,6 +26,11 @@ public class ISO15118EventHandler {
     }
 
     public AuthorizeResponse handleAuthorizeRequest(UUID uuid, AuthorizeRequest request) {
+        LOGGER.debug(RECEIVED_REQUEST, request.getClass().getSimpleName(), jsonCommunicator.packPayload(request));
+        return groovyService.getConfirmation(uuid, request);
+    }
+
+    public AuthorizeResponse handleGetCertificateRequest(UUID uuid, Get15118EVCertificateRequest request) {
         LOGGER.debug(RECEIVED_REQUEST, request.getClass().getSimpleName(), jsonCommunicator.packPayload(request));
         return groovyService.getConfirmation(uuid, request);
     }
