@@ -48,12 +48,12 @@ public class OcppServerService {
 
     @Inject
     public OcppServerService(FirmwareManagementEventHandler firmwareManagementEventHandler,
-                             CoreEventHandler coreEventHandler) {
+                             CoreEventHandler coreEventHandler, ISO15118EventHandler iso15118EventHandler) {
         this.coreProfile = new ServerCoreProfile(coreEventHandler);
         this.firmwareProfile = new ServerFirmwareManagementProfile(firmwareManagementEventHandler);
         this.remoteTriggerProfile = new ServerRemoteTriggerProfile();
         this.localAuthListProfile = new ServerLocalAuthListProfile();
-        this.iso15118Profile = new ISO15118Profile(new ISO15118EventHandler());
+        this.iso15118Profile = new ISO15118Profile(iso15118EventHandler);
     }
 
     public void start(String ip, int port) {
