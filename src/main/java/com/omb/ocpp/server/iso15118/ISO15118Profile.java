@@ -1,25 +1,25 @@
-package com.omb.ocpp.server;
+package com.omb.ocpp.server.iso15118;
 
-import com.omb.ocpp.server.handler.CustomEventHandler;
+import com.omb.ocpp.server.handler.ISO15118EventHandler;
+import com.omb.ocpp.server.iso15118.dto.AuthorizeRequest;
 import eu.chargetime.ocpp.feature.Feature;
 import eu.chargetime.ocpp.feature.ProfileFeature;
 import eu.chargetime.ocpp.feature.profile.Profile;
 import eu.chargetime.ocpp.model.Confirmation;
 import eu.chargetime.ocpp.model.Request;
-import eu.chargetime.ocpp.model.core.AuthorizeRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.UUID;
 
-public class CustomProfile implements Profile {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CustomProfile.class);
-    private CustomEventHandler eventHandler;
+public class ISO15118Profile implements Profile {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ISO15118Profile.class);
+    private ISO15118EventHandler eventHandler;
     private ArrayList<Feature> features = new ArrayList();
 
-    public CustomProfile(CustomEventHandler eventHandler) {
-        this.features.add(new CustomFeature(this));
+    public ISO15118Profile(ISO15118EventHandler eventHandler) {
+        this.features.add(new ISO15118Feature(this));
         this.eventHandler = eventHandler;
     }
 
@@ -31,7 +31,7 @@ public class CustomProfile implements Profile {
     @Override
     public Confirmation handleRequest(UUID uuid, Request request) {
         if (request instanceof AuthorizeRequest) {
-            return this.eventHandler.handleAuthorizeRequest((AuthorizeRequest) request);
+            return this.eventHandler.handleAuthorizeRequest(uuid, (AuthorizeRequest) request);
         } else {
             LOGGER.error("Unknown message for custom Feature arrived");
             return null;
