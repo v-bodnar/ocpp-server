@@ -1,14 +1,10 @@
 
 package com.omb.ocpp.server.iso15118.dto;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.gson.annotations.SerializedName;
 import eu.chargetime.ocpp.model.Confirmation;
 
 import javax.validation.Valid;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -99,42 +95,10 @@ public class Get15118EVCertificateResponse implements Confirmation {
     }
 
     public enum Status {
-
-        ACCEPTED("Accepted"),
-        FAILED("Failed");
-        private final String value;
-        private static final Map<String, Status> CONSTANTS = new HashMap<>();
-
-        static {
-            for (Status c : values()) {
-                CONSTANTS.put(c.value, c);
-            }
-        }
-
-        Status(String value) {
-            this.value = value;
-        }
-
-        @Override
-        public String toString() {
-            return this.value;
-        }
-
-        @JsonValue
-        public String value() {
-            return this.value;
-        }
-
-        @JsonCreator
-        public static Status fromValue(String value) {
-            Status constant = CONSTANTS.get(value);
-            if (constant == null) {
-                throw new IllegalArgumentException(value);
-            } else {
-                return constant;
-            }
-        }
-
+        @SerializedName("Accepted")
+        ACCEPTED,
+        @SerializedName("Failed")
+        FAILED;
     }
 
     @Override
