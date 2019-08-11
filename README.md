@@ -3,6 +3,7 @@
 **Features**
 * Application has two modes GUI/command line
 * Allows communication with clients using OCPP protocol (Supports SSL/TLS)
+* Allows dynamic change of OCPP server behavior 
 * Exposes REST API to control OCPP communication
 
 **Requirements:**
@@ -20,6 +21,8 @@
 **Download**
 ```
 git clone https://github.com/v-bodnar/ocpp-server.git
+git clone https://github.com/v-bodnar/GroovyOcppSupplier.git $GROOVY_PATH //@see section "Changing server behavior 
+using Groovy"
 ```
 
 **Build:** 
@@ -52,15 +55,23 @@ java -jar ocpp-server-0.1.jar <arguments>
 
 ## Changing server behavior using Groovy
 **$GROOVY_PATH = $LITHOS_HOME/ocpp/groovy/**  
-Groovy files will be created under path: **$GROOVY_PATH**  
-By creating groovy classes inside **$GROOVY_PATH** that implement:
+After the first start of ocpp-server app you will get exception:
+```
+xx:xx:xx.xxx [JavaFX Application Thread] ERROR com.omb.ocpp.groovy.GroovyService - Could not load groovy scripts
+java.io.FileNotFoundException: Please execute "git clone https://github.com/v-bodnar/GroovyOcppSupplier.git 
+$GROOVY_PATH"
+```
+So just execute the command above. It will clone new gradle project into the **$GROOVY_PATH** folder.
+After it is done restart the application or click "Reload groovy scripts" on the "Groovy" tab in GUI.
+
+From this point in time you can make changes to the cloned gradle project and dynamically reload scripts using 
+"Reload groovy scripts" button on the "Groovy" tab in GUI or using REST api.
+
+By implementing or changing classes that implement:
 ```
 ConfirmationSupplier<REQUEST extends Request, RESPONSE extends Confirmation> 
 ```
-you can change responses that ocpp server sends to clients. Using GUI reload those classes on runtime. 
- 
-Also you can upload .groovy files using REST API, it will replace files with the same names and automatically load 
-classes to classloader
+you can change responses that ocpp server sends to clients dynamically on runtime.
 
 ## Secure connection using ssl
 **SSL_PATH = $LITHOS_HOME/ocpp/ssl**  
