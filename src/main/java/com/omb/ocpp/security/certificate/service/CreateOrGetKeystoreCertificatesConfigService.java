@@ -18,6 +18,7 @@ public class CreateOrGetKeystoreCertificatesConfigService {
 
     private void createConfigIfNotExists() throws IOException {
         if (Files.notExists(KeystoreConstants.KEYSTORE_CERTIFICATE_CONFIG_PATH)) {
+            Files.createDirectories(KeystoreConstants.KEYSTORE_ROOT_FOLDER_PATH);
             KeystoreConfigRegistry keystoreConfigRegistry = new KeystoreConfigRegistry();
             keystoreConfigRegistry.persist();
         }

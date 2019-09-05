@@ -53,7 +53,7 @@ public class OcppServerService {
         this.firmwareProfile = new ServerFirmwareManagementProfile(firmwareManagementEventHandler);
         this.remoteTriggerProfile = new ServerRemoteTriggerProfile();
         this.localAuthListProfile = new ServerLocalAuthListProfile();
-        this.iso15118Profile = new ISO15118Profile(iso15118EventHandler);
+//        this.iso15118Profile = new ISO15118Profile(iso15118EventHandler);
     }
 
     public void start(String ip, int port) {
@@ -72,7 +72,7 @@ public class OcppServerService {
         server.addFeatureProfile(remoteTriggerProfile);
         server.addFeatureProfile(localAuthListProfile);
         server.addFeatureProfile(coreProfile);
-        server.addFeatureProfile(iso15118Profile);
+//        server.addFeatureProfile(iso15118Profile);
 
         server.open(ip, port, new ServerEvents() {
             @Override
