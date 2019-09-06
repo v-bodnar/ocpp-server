@@ -16,6 +16,7 @@ import eu.chargetime.ocpp.feature.profile.ServerCoreProfile;
 import eu.chargetime.ocpp.feature.profile.ServerFirmwareManagementProfile;
 import eu.chargetime.ocpp.feature.profile.ServerLocalAuthListProfile;
 import eu.chargetime.ocpp.feature.profile.ServerRemoteTriggerProfile;
+import eu.chargetime.ocpp.feature.profile.ServerSmartChargingProfile;
 import eu.chargetime.ocpp.model.Request;
 import eu.chargetime.ocpp.model.SessionInformation;
 import eu.chargetime.ocpp.wss.WssFactoryBuilder;
@@ -44,6 +45,7 @@ public class OcppServerService {
     private Profile remoteTriggerProfile;
     private Profile localAuthListProfile;
     private Profile iso15118Profile;
+    private Profile smartChargingProfile;
     private SslContextConfig sslContextConfig;
 
     @Inject
@@ -53,6 +55,7 @@ public class OcppServerService {
         this.firmwareProfile = new ServerFirmwareManagementProfile(firmwareManagementEventHandler);
         this.remoteTriggerProfile = new ServerRemoteTriggerProfile();
         this.localAuthListProfile = new ServerLocalAuthListProfile();
+        this.smartChargingProfile = new ServerSmartChargingProfile();
 //        this.iso15118Profile = new ISO15118Profile(iso15118EventHandler);
     }
 
@@ -72,6 +75,7 @@ public class OcppServerService {
         server.addFeatureProfile(remoteTriggerProfile);
         server.addFeatureProfile(localAuthListProfile);
         server.addFeatureProfile(coreProfile);
+        server.addFeatureProfile(smartChargingProfile);
 //        server.addFeatureProfile(iso15118Profile);
 
         server.open(ip, port, new ServerEvents() {

@@ -21,6 +21,8 @@ import eu.chargetime.ocpp.model.firmware.UpdateFirmwareRequest;
 import eu.chargetime.ocpp.model.localauthlist.GetLocalListVersionRequest;
 import eu.chargetime.ocpp.model.localauthlist.SendLocalListRequest;
 import eu.chargetime.ocpp.model.remotetrigger.TriggerMessageRequest;
+import eu.chargetime.ocpp.model.smartcharging.ClearChargingProfileRequest;
+import eu.chargetime.ocpp.model.smartcharging.SetChargingProfileRequest;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -174,6 +176,10 @@ public class CommunicatorTab {
 
         //Remote trigger profile messages
         messages.add(TriggerMessageRequest.class);
+
+        //Smart Charging profile messages
+        messages.add(SetChargingProfileRequest.class);
+        messages.add(ClearChargingProfileRequest.class);
 
         return messages;
     }

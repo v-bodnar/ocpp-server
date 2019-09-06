@@ -24,6 +24,8 @@ import eu.chargetime.ocpp.model.core.UnlockConnectorRequest;
 import eu.chargetime.ocpp.model.firmware.DiagnosticsStatusNotificationRequest;
 import eu.chargetime.ocpp.model.firmware.FirmwareStatusNotificationRequest;
 import eu.chargetime.ocpp.model.firmware.GetDiagnosticsRequest;
+import eu.chargetime.ocpp.model.smartcharging.ClearChargingProfileRequest;
+import eu.chargetime.ocpp.model.smartcharging.SetChargingProfileRequest;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
@@ -126,6 +128,18 @@ public class RestAPI {
     @Path("send-firmware-status-notification-request")
     public Response sendFirmwareStatusNotificationRequest(FirmwareStatusNotificationRequest firmwareStatusNotificationRequest) {
         return sendRequest(firmwareStatusNotificationRequest);
+    }
+
+    @POST
+    @Path("send-set-charging-profile-request")
+    public Response sendSetChargingProfileRequest(SetChargingProfileRequest setChargingProfileRequest) {
+        return sendRequest(setChargingProfileRequest);
+    }
+
+    @POST
+    @Path("send-clear-charging-profile-request")
+    public Response sendClearChargingProfileRequest(ClearChargingProfileRequest clearChargingProfileRequest) {
+        return sendRequest(clearChargingProfileRequest);
     }
 
     @POST

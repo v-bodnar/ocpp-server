@@ -11,11 +11,17 @@ import eu.chargetime.ocpp.model.core.AvailabilityType;
 import eu.chargetime.ocpp.model.core.ChangeAvailabilityRequest;
 import eu.chargetime.ocpp.model.core.ChangeConfigurationRequest;
 import eu.chargetime.ocpp.model.core.ChargingProfile;
+import eu.chargetime.ocpp.model.core.ChargingProfileKindType;
+import eu.chargetime.ocpp.model.core.ChargingProfilePurposeType;
+import eu.chargetime.ocpp.model.core.ChargingRateUnitType;
+import eu.chargetime.ocpp.model.core.ChargingSchedule;
+import eu.chargetime.ocpp.model.core.ChargingSchedulePeriod;
 import eu.chargetime.ocpp.model.core.ClearCacheRequest;
 import eu.chargetime.ocpp.model.core.DataTransferRequest;
 import eu.chargetime.ocpp.model.core.GetConfigurationRequest;
 import eu.chargetime.ocpp.model.core.MeterValue;
 import eu.chargetime.ocpp.model.core.MeterValuesRequest;
+import eu.chargetime.ocpp.model.core.RecurrencyKindType;
 import eu.chargetime.ocpp.model.core.RemoteStartTransactionRequest;
 import eu.chargetime.ocpp.model.core.RemoteStopTransactionRequest;
 import eu.chargetime.ocpp.model.core.ResetRequest;
@@ -32,11 +38,21 @@ import eu.chargetime.ocpp.model.localauthlist.GetLocalListVersionRequest;
 import eu.chargetime.ocpp.model.localauthlist.SendLocalListRequest;
 import eu.chargetime.ocpp.model.remotetrigger.TriggerMessageRequest;
 import eu.chargetime.ocpp.model.remotetrigger.TriggerMessageRequestType;
+import eu.chargetime.ocpp.model.smartcharging.ClearChargingProfileRequest;
+import eu.chargetime.ocpp.model.smartcharging.SetChargingProfileRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 
 public class StubRequestsFactory {
@@ -51,9 +67,11 @@ public class StubRequestsFactory {
             .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
             .configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)
             .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+            .enable(SerializationFeature.INDENT_OUTPUT)
             .registerModule(new JavaTimeModule());
 
-    private StubRequestsFactory() {}
+    private StubRequestsFactory() {
+    }
 
 
     static String getStubRequest(Class<? extends Request> requestClass) {
@@ -90,9 +108,13 @@ public class StubRequestsFactory {
                 return getGetLocalListVersionRequest();
             } else if (requestClass.equals(SendLocalListRequest.class)) {
                 return getSendLocalListRequest();
-            } else if(requestClass.equals(TriggerMessageRequest.class)){
+            } else if (requestClass.equals(TriggerMessageRequest.class)) {
                 return getTriggerMessageRequest();
-            }else {
+            } else if (requestClass.equals(SetChargingProfileRequest.class)) {
+                return getSetChargingProfileRequest();
+            } else if (requestClass.equals(ClearChargingProfileRequest.class)) {
+                return getClearCacheRequest();
+            } else {
                 return NOT_SUPPORTED;
             }
         } catch (PropertyConstraintException | JsonProcessingException e) {
@@ -228,7 +250,48 @@ public class StubRequestsFactory {
         return objectMapper.writeValueAsString(triggerMessageRequest);
     }
 
-    public static <T extends Request> Optional<T> toRequest(String request, Class<T> requestClass){
+    private static String getSetChargingProfileRequest() throws JsonProcessingException {
+        ChargingSchedulePeriod chargingSchedulePeriod1 = new ChargingSchedulePeriod();
+        chargingSchedulePeriod1.setLimit(20d);
+        chargingSchedulePeriod1.setNumberPhases(3);
+        chargingSchedulePeriod1.setStartPeriod(0);
+
+        ChargingSchedulePeriod chargingSchedulePeriod2 = new ChargingSchedulePeriod();
+        chargingSchedulePeriod2.setLimit(30d);
+        chargingSchedulePeriod2.setNumberPhases(3);
+        chargingSchedulePeriod2.setStartPeriod((int) ChronoUnit.DAYS.getDuration().getSeconds());
+
+        ChargingProfileBuilder chargingProfileBuilder = new ChargingProfileBuilder()
+                .withChargingProfileId(1234)
+                .withChargingProfilePurposeType(ChargingProfilePurposeType.TxDefaultProfile)
+                .withChargingProfileKindType(ChargingProfileKindType.Relative)
+                .withChargingRateUnitType(ChargingRateUnitType.A)
+                .withStackLevel(1)
+                .withMinChargingRate(10d)
+                .withValidFrom(Instant.now().minus(1, ChronoUnit.DAYS))
+                .withValidTo(Instant.now().plus(1, ChronoUnit.DAYS))
+                .withStartSchedule(Instant.now().minus(1, ChronoUnit.DAYS))
+                .withChargingScheduleDuration((int) ChronoUnit.DAYS.getDuration().getSeconds() * 2)
+                .withChargingSchedulePeriods(chargingSchedulePeriod1, chargingSchedulePeriod2);
+
+        SetChargingProfileRequest setChargingProfileRequest = new SetChargingProfileRequest();
+        setChargingProfileRequest.setConnectorId(1);
+        setChargingProfileRequest.setCsChargingProfiles(chargingProfileBuilder.build());
+
+        return objectMapper.writeValueAsString(setChargingProfileRequest);
+    }
+
+    private static String getClearChargingProfileRequest() throws JsonProcessingException {
+        ClearChargingProfileRequest clearChargingProfileRequest = new ClearChargingProfileRequest();
+        clearChargingProfileRequest.setConnectorId(0);
+        clearChargingProfileRequest.setChargingProfilePurpose(ChargingProfilePurposeType.TxDefaultProfile);
+        clearChargingProfileRequest.setId(1234);
+        clearChargingProfileRequest.setStackLevel(1);
+
+        return objectMapper.writeValueAsString(clearChargingProfileRequest);
+    }
+
+    public static <T extends Request> Optional<T> toRequest(String request, Class<T> requestClass) {
         try {
             return Optional.of(objectMapper.readValue(request, requestClass));
         } catch (IOException e) {
@@ -237,7 +300,7 @@ public class StubRequestsFactory {
         }
     }
 
-    public static String toJson(Request request){
+    public static String toJson(Request request) {
         try {
             return objectMapper.writeValueAsString(request);
         } catch (JsonProcessingException e) {
@@ -246,4 +309,112 @@ public class StubRequestsFactory {
         }
     }
 
+    private static class ChargingProfileBuilder {
+        private int chargingProfileId;
+        private Instant validFrom;
+        private Instant validTo;
+        private ChargingProfileKindType chargingProfileKindType;
+        private ChargingProfilePurposeType chargingProfilePurposeType;
+        private RecurrencyKindType recurrencyKindType;
+        private int stackLevel;
+        private Integer transactionId;
+
+        private ChargingRateUnitType chargingRateUnitType;
+        private int chargingScheduleDuration;
+        private Double minChargingRate;
+        private Instant startSchedule;
+
+        private List<ChargingSchedulePeriod> chargingSchedulePeriods = new LinkedList<>();
+
+        public ChargingProfileBuilder withChargingProfileId(int chargingProfileId) {
+            this.chargingProfileId = chargingProfileId;
+            return this;
+        }
+
+        public ChargingProfileBuilder withValidFrom(Instant validFrom) {
+            this.validFrom = validFrom;
+            return this;
+        }
+
+        public ChargingProfileBuilder withValidTo(Instant validTo) {
+            this.validTo = validTo;
+            return this;
+        }
+
+        public ChargingProfileBuilder withChargingProfileKindType(ChargingProfileKindType chargingProfileKindType) {
+            this.chargingProfileKindType = chargingProfileKindType;
+            return this;
+        }
+
+        public ChargingProfileBuilder withChargingProfilePurposeType(ChargingProfilePurposeType chargingProfilePurposeType) {
+            this.chargingProfilePurposeType = chargingProfilePurposeType;
+            return this;
+        }
+
+        public ChargingProfileBuilder withRecurrencyKindType(RecurrencyKindType recurrencyKindType) {
+            this.recurrencyKindType = recurrencyKindType;
+            return this;
+        }
+
+        public ChargingProfileBuilder withStackLevel(int stackLevel) {
+            this.stackLevel = stackLevel;
+            return this;
+        }
+
+        public ChargingProfileBuilder withTransactionId(int transactionId) {
+            this.transactionId = transactionId;
+            return this;
+        }
+
+        public ChargingProfileBuilder withChargingRateUnitType(ChargingRateUnitType chargingRateUnitType) {
+            this.chargingRateUnitType = chargingRateUnitType;
+            return this;
+        }
+
+        public ChargingProfileBuilder withChargingScheduleDuration(int chargingScheduleDuration) {
+            this.chargingScheduleDuration = chargingScheduleDuration;
+            return this;
+        }
+
+        public ChargingProfileBuilder withMinChargingRate(Double minChargingRate) {
+            this.minChargingRate = minChargingRate;
+            return this;
+        }
+
+        public ChargingProfileBuilder withStartSchedule(Instant startSchedule) {
+            this.startSchedule = startSchedule;
+            return this;
+        }
+
+        public ChargingProfileBuilder withChargingSchedulePeriods(ChargingSchedulePeriod... chargingSchedulePeriods) {
+            this.chargingSchedulePeriods = Arrays.asList(chargingSchedulePeriods);
+            return this;
+        }
+
+        public ChargingProfileBuilder withChargingSchedulePeriod(ChargingSchedulePeriod chargingSchedulePeriod) {
+            this.chargingSchedulePeriods.add(chargingSchedulePeriod);
+            return this;
+        }
+
+        public ChargingProfile build() {
+            ChargingSchedule chargingSchedule = new ChargingSchedule();
+            chargingSchedule.setChargingRateUnit(chargingRateUnitType);
+            chargingSchedule.setDuration(chargingScheduleDuration);
+            chargingSchedule.setMinChargingRate(minChargingRate);
+            chargingSchedule.setStartSchedule(GregorianCalendar.from(ZonedDateTime.ofInstant(startSchedule, ZoneOffset.UTC)));
+            chargingSchedule.setChargingSchedulePeriod(chargingSchedulePeriods.toArray(new ChargingSchedulePeriod[0]));
+
+            ChargingProfile chargingProfile = new ChargingProfile();
+            chargingProfile.setChargingProfileId(chargingProfileId);
+            chargingProfile.setTransactionId(transactionId);
+            chargingProfile.setChargingProfilePurpose(chargingProfilePurposeType);
+            chargingProfile.setChargingProfileKind(chargingProfileKindType);
+            chargingProfile.setRecurrencyKind(recurrencyKindType);
+            chargingProfile.setStackLevel(stackLevel);
+            chargingProfile.setValidFrom(GregorianCalendar.from(ZonedDateTime.ofInstant(validFrom, ZoneOffset.UTC)));
+            chargingProfile.setValidTo(GregorianCalendar.from(ZonedDateTime.ofInstant(validTo, ZoneOffset.UTC)));
+            chargingProfile.setChargingSchedule(chargingSchedule);
+            return chargingProfile;
+        }
+    }
 }
