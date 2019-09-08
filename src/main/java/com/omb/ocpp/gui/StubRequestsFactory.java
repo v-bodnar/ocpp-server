@@ -113,7 +113,7 @@ public class StubRequestsFactory {
             } else if (requestClass.equals(SetChargingProfileRequest.class)) {
                 return getSetChargingProfileRequest();
             } else if (requestClass.equals(ClearChargingProfileRequest.class)) {
-                return getClearCacheRequest();
+                return getClearChargingProfileRequest();
             } else {
                 return NOT_SUPPORTED;
             }
