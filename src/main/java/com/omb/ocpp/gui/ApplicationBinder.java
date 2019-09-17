@@ -1,5 +1,6 @@
 package com.omb.ocpp.gui;
 
+import com.omb.ocpp.config.Config;
 import com.omb.ocpp.groovy.GroovyService;
 import com.omb.ocpp.rest.WebServer;
 import com.omb.ocpp.security.certificate.api.KeystoreApi;
@@ -16,6 +17,7 @@ import javax.inject.Singleton;
 public class ApplicationBinder extends AbstractBinder {
     @Override
     protected void configure() {
+        bind(Config.class).to(Config.class).in(Singleton.class);
         bind(GroovyService.class).to(GroovyService.class).in(Singleton.class);
         bind(OcppServerService.class).to(OcppServerService.class).in(Singleton.class);
         bind(WebServer.class).to(WebServer.class).in(Singleton.class);

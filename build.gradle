@@ -49,8 +49,10 @@ dependencies {
     compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.61'
 
     compile group: 'org.codehaus.groovy', name: 'groovy-all', version: '3.0.0-alpha-4'
-    compile group: 'commons-cli', name: 'commons-cli', version: '1.4'
 
+    compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
+    compile group: 'org.apache.commons', name: 'commons-configuration2', version: '2.5'
+    
     runtimeOnly  "org.openjfx:javafx-base:$javafx.version:win"
     runtimeOnly  "org.openjfx:javafx-base:$javafx.version:linux"
     runtimeOnly  "org.openjfx:javafx-base:$javafx.version:mac"

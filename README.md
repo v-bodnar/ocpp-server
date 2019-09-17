@@ -32,7 +32,7 @@ gradle build
 ```
 
 **Usage:**  
-Before using set **LITHOS_HOME** - environment variable 
+Before using set **OCPP_SERVER_HOME** - environment variable 
 ``` 
 cd ocpp-server/build/libs/
 java -jar ocpp-server-0.1.jar <arguments>  
@@ -54,7 +54,7 @@ java -jar ocpp-server-0.1.jar <arguments>
  - -showKeystoreConfig                                              Show keystore config file content
 
 ## Changing server behavior using Groovy
-**$GROOVY_PATH = $LITHOS_HOME/ocpp/groovy/**  
+**$GROOVY_PATH = $OCPP_SERVER_HOME/groovy/**  
 After the first start of ocpp-server app you will get exception:
 ```
 xx:xx:xx.xxx [JavaFX Application Thread] ERROR com.omb.ocpp.groovy.GroovyService - Could not load groovy scripts
@@ -74,7 +74,7 @@ ConfirmationSupplier<REQUEST extends Request, RESPONSE extends Confirmation>
 you can change responses that ocpp server sends to clients dynamically on runtime.
 
 ## Secure connection using ssl
-**SSL_PATH = $LITHOS_HOME/ocpp/ssl**  
+**SSL_PATH = $OCPP_SERVER_HOME/ssl**  
 During startup Ocpp-server will create trust store SSL_PATH/trust-store.jks which is used for storing clients certificates
 During startup Ocpp-server will create file SSL_PATH/keystore-certificates.config which is used for storing information 
 about key-stores that contain server certificate, each server certificate will be stored in the separate key-store. 
@@ -88,7 +88,7 @@ information to keystore-certificates.config file. Example:
     {
       "uuid": "b1ca37d9-3ee9-4b22-95d3-e976f02ff3fd",
       "keystorePassword": "f9a42ef7-7ce5-4dc3-8b15-d139f4dcd737",
-      "keystorePath": "C:\\Work\\Shared\\LITHOS_HOME\\ocpp\\ssl\\b1ca37d9-3ee9-4b22-95d3-e976f02ff3fd.jks",
+      "keystorePath": "C:\\Work\\Shared\\OCPP_SERVER_HOME\\ocpp\\ssl\\b1ca37d9-3ee9-4b22-95d3-e976f02ff3fd.jks",
       "keystoreProtocol": "TLSv1.2"
     }
   ]

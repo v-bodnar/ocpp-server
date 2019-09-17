@@ -1,57 +1,33 @@
 package com.omb.ocpp.gui;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.omb.ocpp.config.Config;
+import com.omb.ocpp.config.ConfigKey;
 import com.omb.ocpp.groovy.GroovyService;
 import com.omb.ocpp.rest.WebServer;
 import com.omb.ocpp.security.certificate.api.KeystoreApi;
-import com.omb.ocpp.security.certificate.config.KeystoreCertificateConfig;
-import com.omb.ocpp.security.certificate.config.KeystoreConfigRegistry;
 import com.omb.ocpp.server.OcppServerService;
 import com.omb.ocpp.server.SslContextConfig;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.utilities.ServiceLocatorUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.UUID;
-import java.util.function.Predicate;
 
 public class Application {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Application.class);
 
-    public static final String LITHOS_HOME = Optional.ofNullable(System.getenv("LITHOS_HOME")).orElse("/home/bmterra/lithos");
+    public static final String OCPP_SERVER_HOME = System.getenv("OCPP_SERVER_HOME");
 
     public static final Application APPLICATION = new Application();
 
     private final ServiceLocator applicationContext = ServiceLocatorUtilities.bind(new ApplicationBinder());
-
-    private static final String HELP = "help";
-    private static final String SHOW_KEYSTORE_CONFIG = "showKeystoreConfig";
-    private static final String CREATE_KEYSTORE_CERTIFICATE = "createKeystoreCertificate";
-    private static final String DELETE_KEYSTORE_CERTIFICATE = "deleteKeystoreCertificate";
-
-    private static final String NO_GUI_ID = "nogui";
-    private static final String IP_ID = "ip";
-    private static final String OCPP_PORT_ID = "ocppPort";
-    private static final String REST_PORT_ID = "restPort";
-
-    private static final String KEYSTORE_UUID = "keystoreUUID";
-    private static final String CLIENT_AUTHENTICATED_NEEDED = "clientAuthenticationNeeded";
-    private static final String KEYSTORE_CIPHERS = "keystoreCiphers";
 
     @Inject
     private GroovyService groovyService;
@@ -65,110 +41,64 @@ public class Application {
     @Inject
     private KeystoreApi keystoreApi;
 
+    @Inject
+    private Config config;
+
     public Application() {
         applicationContext.inject(this);
     }
 
     public static void main(String[] args) {
         try {
-            CommandLineParser parser = new DefaultParser();
-            Options options = getOptions();
-            CommandLine cmd = parser.parse(options, args);
-            invokeCommand(options, cmd, args);
+            createRootFolder();
+            APPLICATION.start();
         } catch (Exception e) {
-            LOGGER.error("Wrong arguments on the command line", e);
-            printHelp(getOptions());
+            LOGGER.error("Critical error, closing app", e);
+            System.exit(0);
         }
     }
 
-    private static void invokeCommand(Options options, CommandLine cmd, String[] args) throws Exception {
-        Map<Predicate<CommandLine>, Action> commands = new LinkedHashMap<>();
-        commands.put(line -> line.hasOption(HELP), () -> printHelp(options));
-        commands.put(line -> line.hasOption(SHOW_KEYSTORE_CONFIG), APPLICATION::showKeystoreCertificatesConfig);
-        commands.put(line -> line.hasOption(CREATE_KEYSTORE_CERTIFICATE), APPLICATION::createKeystoreCertificate);
-        commands.put(line -> line.hasOption(DELETE_KEYSTORE_CERTIFICATE), () -> APPLICATION.deleteKeystoreCertificate(cmd));
-        commands.put(line -> line.hasOption(NO_GUI_ID), () -> APPLICATION.startNoGui(cmd));
-
-        Action action = commands.
-                entrySet().
-                stream().
-                filter(e -> e.getKey().test(cmd)).
-                map(Map.Entry::getValue).
-                findFirst().
-                orElseGet(() -> () -> GuiApplication.main(args));
-
-        action.execute();
+    private static void createRootFolder() {
+        if (OCPP_SERVER_HOME == null) {
+            LOGGER.error("Please define OCPP_SERVER_HOME environment variable, closing app...");
+            return;
+        } else if (!Files.exists(Path.of(OCPP_SERVER_HOME))) {
+            try {
+                LOGGER.info("Creating {} folder", OCPP_SERVER_HOME);
+                Files.createDirectories(Path.of(OCPP_SERVER_HOME));
+            } catch (IOException e) {
+                LOGGER.error(String.format("Error during %s creation", OCPP_SERVER_HOME), e);
+            }
+        }
     }
 
-    private void showKeystoreCertificatesConfig() throws Exception {
-        KeystoreConfigRegistry keystoreConfigRegistry = keystoreApi.getKeystoreConfigRegistry();
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        LOGGER.info(gson.toJson(keystoreConfigRegistry));
+    private void start() throws Exception {
+        if (config.getBoolean(ConfigKey.GUI_MODE)) {
+            GuiApplication.main(new String[0]);
+        } else {
+            startNoGui();
+        }
     }
 
-    private void createKeystoreCertificate() throws Exception {
-        KeystoreCertificateConfig keystoreCertificateConfig = keystoreApi.createKeystoreCertificate();
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        LOGGER.info(gson.toJson(keystoreCertificateConfig));
-    }
-
-    private void deleteKeystoreCertificate(CommandLine commandLine) throws Exception {
-        UUID keystoreUUID = Optional.ofNullable(commandLine.getOptionValue(DELETE_KEYSTORE_CERTIFICATE)).
-                map(UUID::fromString).
-                orElseThrow(() -> new IllegalArgumentException("Keystore UUID not found"));
-        keystoreApi.deleteKeystoreCertificate(keystoreUUID);
-    }
-
-    private static Options getOptions() {
-        Options options = new Options();
-        options.addOption("h", HELP, false, "print this message");
-
-        options.addOption(SHOW_KEYSTORE_CONFIG, false, "Show keystore config file content");
-        options.addOption(CREATE_KEYSTORE_CERTIFICATE, false, "Create new keystore certificate");
-        options.addOption(DELETE_KEYSTORE_CERTIFICATE, true, "Delete keystore certificate");
-
-        options.addOption(NO_GUI_ID, NO_GUI_ID, false, "indicates that application should be started without GUI.");
-        options.addOption(IP_ID, IP_ID, true, "the ip on which server will accept OCPP connections, default:127.0.0.1, works in combination with -nogui");
-        options.addOption(OCPP_PORT_ID, OCPP_PORT_ID, true, "port on which OCPP server will accept connections, default:8887, works in combination with -nogui");
-
-        options.addOption(KEYSTORE_UUID, KEYSTORE_UUID, true, "run ssl server with keystore for defined keystore uuid");
-        options.addOption(CLIENT_AUTHENTICATED_NEEDED, CLIENT_AUTHENTICATED_NEEDED, true, "should server needed for client certificate");
-        options.addOption(KEYSTORE_CIPHERS, KEYSTORE_CIPHERS, true, "list of keystore ciphers separated by comma");
-
-        options.addOption(Option.builder(REST_PORT_ID)
-                .longOpt(REST_PORT_ID)
-                .hasArg()
-                .desc("port on which REST server will accept connections, default:9090, works in combination with -nogui")
-                .type(Integer.class)
-                .build()
-
-        );
-        return options;
-    }
-
-    private static void printHelp(Options options) {
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.setWidth(150);
-        formatter.printHelp("ocpp-server", options);
-    }
-
-    private void startNoGui(CommandLine commandLine) throws Exception {
-
+    private void startNoGui() throws Exception {
         groovyService.loadGroovyScripts();
 
-        String host = commandLine.hasOption(IP_ID) ? commandLine.getOptionValue(IP_ID) : "127.0.0.1";
-        int ocppPort = commandLine.hasOption(OCPP_PORT_ID) ? Integer.parseInt(commandLine.getOptionValue(OCPP_PORT_ID)) : 8887;
-        int restPort = commandLine.hasOption(REST_PORT_ID) ? Integer.parseInt(commandLine.getOptionValue(REST_PORT_ID)) : 9090;
+        String host = config.getString(ConfigKey.OCPP_SERVER_IP);
+        int ocppPort = config.getInt(ConfigKey.OCPP_SERVER_PORT);
+        int restPort = config.getInt(ConfigKey.REST_API_PORT);
+        boolean sslEnabled = config.getBoolean(ConfigKey.SSL_ENABLED);
 
-        LOGGER.info("Starting server in no GUI mode, host:{}, ocppPort: {}, restPort: {}", host, ocppPort, restPort);
+        LOGGER.info("Starting server in no GUI mode, host:{}, ocppPort: {}, restPort: {}, sslEnabled: {}", host,
+                ocppPort, restPort,
+                sslEnabled);
 
-        if (commandLine.hasOption(KEYSTORE_UUID)) {
-            UUID keystoreUUID = UUID.fromString(commandLine.getOptionValue(KEYSTORE_UUID));
+        if (sslEnabled) {
+            UUID keystoreUUID = UUID.fromString(config.getString(ConfigKey.SSL_KEYSTORE_UUID));
             SslContextConfig sslContextConfig =
-                    new SslContextConfig().
-                            setSslContext(keystoreApi.initializeSslContext(keystoreUUID)).
-                            setCiphers(Optional.ofNullable(commandLine.getOptionValue(KEYSTORE_CIPHERS)).map(line -> Arrays.asList(line.split(","))).orElse(Collections.emptyList())).
-                            setClientAuthenticationNeeded(Boolean.parseBoolean(commandLine.getOptionValue(CLIENT_AUTHENTICATED_NEEDED, "false")));
+                    new SslContextConfig()
+                            .setSslContext(keystoreApi.initializeSslContext(keystoreUUID))
+                            .setCiphers(new ArrayList<>(config.getStringCollection(ConfigKey.SSL_KEYSTORE_CIPHERS)))
+                            .setClientAuthenticationNeeded(config.getBoolean(ConfigKey.SSL_CLIENT_AUTH));
             ocppServerService.setSslContextConfig(sslContextConfig);
         }
 
@@ -187,10 +117,5 @@ public class Application {
 
     public <T> T getService(Class<T> clazz) {
         return getApplicationContext().getService(clazz);
-    }
-
-    @FunctionalInterface
-    private interface Action {
-        void execute() throws Exception;
     }
 }

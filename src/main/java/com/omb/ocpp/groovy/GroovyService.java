@@ -30,12 +30,12 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.omb.ocpp.gui.Application.LITHOS_HOME;
+import static com.omb.ocpp.gui.Application.OCPP_SERVER_HOME;
 
 @Service
 public class GroovyService {
     private static final Logger LOGGER = LoggerFactory.getLogger(GroovyService.class);
-    private static final Path GROOVY_PROJECT_FOLDER = Paths.get(LITHOS_HOME, "ocpp", "groovy");
+    private static final Path GROOVY_PROJECT_FOLDER = Paths.get(OCPP_SERVER_HOME, "groovy");
     private static final Path SUPPLIERS_FOLDER = Paths.get(GROOVY_PROJECT_FOLDER.toString(), "src", "main", "groovy", "com",
             "omb", "ocpp", "groovy", "supplier");
 
