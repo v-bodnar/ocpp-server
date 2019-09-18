@@ -7,6 +7,7 @@ import org.apache.commons.configuration2.PropertiesConfigurationLayout;
 import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.apache.commons.configuration2.builder.fluent.PropertiesBuilderParameters;
+import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.configuration2.ex.ConversionException;
 import org.slf4j.Logger;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -50,6 +52,7 @@ public class Config {
         propBuilder.setLayout(layout);
         propBuilder.setFile(PROPERTIES_PATH.toFile());
         propBuilder.setEncoding("UTF-8");
+        propBuilder.setListDelimiterHandler(new DefaultListDelimiterHandler(','));
 
         FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
                 .configure(propBuilder);
@@ -98,8 +101,8 @@ public class Config {
     @SuppressWarnings("unchecked")
     public Collection<String> getStringCollection(ConfigKey configKey) {
         try {
-            return config.getCollection(String.class, configKey.getKey(), new LinkedList<>(),
-                    (LinkedList<String>) configKey.getDefaultValue());
+            return config.getCollection(String.class, configKey.getKey(), new ArrayList<>(),
+                    (ArrayList<String>) configKey.getDefaultValue());
         } catch (ConversionException e) {
             LOGGER.error(String.format(DEFAULT_VALUE_MESSAGE,
                     configKey.getKey(), configKey.getDefaultValue()), e);

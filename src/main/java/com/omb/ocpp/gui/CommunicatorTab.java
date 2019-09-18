@@ -1,5 +1,8 @@
 package com.omb.ocpp.gui;
 
+import com.omb.ocpp.config.Config;
+import com.omb.ocpp.config.ConfigKey;
+import com.omb.ocpp.server.Feature;
 import com.omb.ocpp.server.OcppServerService;
 import com.omb.ocpp.server.SessionsListener;
 import eu.chargetime.ocpp.model.Request;
@@ -44,7 +47,9 @@ import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -64,13 +69,14 @@ public class CommunicatorTab {
     private final ComboBox<Class<? extends Request>> messageTypeCombo = new ComboBox<>();
     private final TextArea messageTextArea = new TextArea();
     private final Button sendButton = new Button("Send Message");
-    private final Set<Class<? extends Request>> messagesAvailableForSend = getMessagesAvailableForSend();
+    private final Config config;
 
     private final OcppServerService ocppServerService;
 
     @Inject
     public CommunicatorTab(ServiceLocator applicationContext) {
         this.ocppServerService = applicationContext.getService(OcppServerService.class);
+        this.config = applicationContext.getService(Config.class);
     }
 
     public Tab constructTab(Stage primaryStage) {
@@ -88,8 +94,7 @@ public class CommunicatorTab {
         selectedClientField.setPromptText("Selected client");
         selectedClientField.setEditable(false);
 
-
-        messageTypeCombo.setItems(FXCollections.observableArrayList(messagesAvailableForSend));
+        messageTypeCombo.setItems(FXCollections.observableArrayList(getMessagesAvailableForSend()));
         messageTypeCombo.prefWidthProperty().bind(primaryStage.widthProperty());
         messageTypeCombo.setConverter(new StringConverter<>() {
             @Override
@@ -149,10 +154,12 @@ public class CommunicatorTab {
         return tab;
     }
 
-    private static Set<Class<? extends Request>> getMessagesAvailableForSend() {
+    private Set<Class<? extends Request>> getMessagesAvailableForSend() {
         Set<Class<? extends Request>> messages = new LinkedHashSet<>();
 
         //Core profile messages
+        Collection<String> featuresList = config.getStringCollection(ConfigKey.OCPP_FEATURES_PROFILE_LIST);
+
         messages.add(ChangeAvailabilityRequest.class);
         messages.add(ChangeConfigurationRequest.class);
         messages.add(ClearCacheRequest.class);
@@ -164,23 +171,26 @@ public class CommunicatorTab {
         messages.add(ResetRequest.class);
         messages.add(UnlockConnectorRequest.class);
 
-        //Firmware profile messages
-        messages.add(DiagnosticsStatusNotificationRequest.class);
-        messages.add(FirmwareStatusNotificationRequest.class);
-        messages.add(GetDiagnosticsRequest.class);
-        messages.add(UpdateFirmwareRequest.class);
+        if (featuresList.contains(Feature.FIRMWARE_MANAGEMENT.getKey())) {
+            messages.add(DiagnosticsStatusNotificationRequest.class);
+            messages.add(FirmwareStatusNotificationRequest.class);
+            messages.add(GetDiagnosticsRequest.class);
+            messages.add(UpdateFirmwareRequest.class);
+        }
 
-        //LocalAuthList profile messages
-        messages.add(GetLocalListVersionRequest.class);
-        messages.add(SendLocalListRequest.class);
+        if (featuresList.contains(Feature.LOCAL_AUTH_LIST.getKey())) {
+            messages.add(GetLocalListVersionRequest.class);
+            messages.add(SendLocalListRequest.class);
+        }
 
-        //Remote trigger profile messages
-        messages.add(TriggerMessageRequest.class);
+        if (featuresList.contains(Feature.REMOTE_TRIGGER.getKey())) {
+            messages.add(TriggerMessageRequest.class);
+        }
 
-        //Smart Charging profile messages
-        messages.add(SetChargingProfileRequest.class);
-        messages.add(ClearChargingProfileRequest.class);
-
+        if (featuresList.contains(Feature.SMART_CHARGING.getKey())) {
+            messages.add(SetChargingProfileRequest.class);
+            messages.add(ClearChargingProfileRequest.class);
+        }
         return messages;
     }
 

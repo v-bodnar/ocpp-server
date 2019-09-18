@@ -1,5 +1,7 @@
 package com.omb.ocpp.server;
 
+import com.omb.ocpp.config.Config;
+import com.omb.ocpp.config.ConfigKey;
 import com.omb.ocpp.security.BaseWssFactoryBuilderWrapper;
 import com.omb.ocpp.server.handler.CoreEventHandler;
 import com.omb.ocpp.server.handler.ISO15118EventHandler;
@@ -25,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -47,16 +50,18 @@ public class OcppServerService {
     private Profile iso15118Profile;
     private Profile smartChargingProfile;
     private SslContextConfig sslContextConfig;
+    private Config config;
 
     @Inject
     public OcppServerService(FirmwareManagementEventHandler firmwareManagementEventHandler,
-                             CoreEventHandler coreEventHandler, ISO15118EventHandler iso15118EventHandler) {
+                             CoreEventHandler coreEventHandler, ISO15118EventHandler iso15118EventHandler, Config config) {
+        this.config = config;
         this.coreProfile = new ServerCoreProfile(coreEventHandler);
         this.firmwareProfile = new ServerFirmwareManagementProfile(firmwareManagementEventHandler);
         this.remoteTriggerProfile = new ServerRemoteTriggerProfile();
         this.localAuthListProfile = new ServerLocalAuthListProfile();
         this.smartChargingProfile = new ServerSmartChargingProfile();
-//        this.iso15118Profile = new ISO15118Profile(iso15118EventHandler);
+        this.iso15118Profile = new ISO15118Profile(iso15118EventHandler);
     }
 
     public void start(String ip, int port) {
@@ -70,13 +75,25 @@ public class OcppServerService {
         } else {
             server = initializeJsonServer();
         }
+        Collection<String> featuresList = config.getStringCollection(ConfigKey.OCPP_FEATURES_PROFILE_LIST);
 
-        server.addFeatureProfile(firmwareProfile);
-        server.addFeatureProfile(remoteTriggerProfile);
-        server.addFeatureProfile(localAuthListProfile);
         server.addFeatureProfile(coreProfile);
-        server.addFeatureProfile(smartChargingProfile);
-//        server.addFeatureProfile(iso15118Profile);
+
+        if(featuresList.contains(Feature.FIRMWARE_MANAGEMENT.getKey())) {
+            server.addFeatureProfile(firmwareProfile);
+        }
+        if(featuresList.contains(Feature.REMOTE_TRIGGER.getKey())) {
+            server.addFeatureProfile(remoteTriggerProfile);
+        }
+        if(featuresList.contains(Feature.LOCAL_AUTH_LIST.getKey())) {
+            server.addFeatureProfile(localAuthListProfile);
+        }
+        if(featuresList.contains(Feature.SMART_CHARGING.getKey())) {
+            server.addFeatureProfile(smartChargingProfile);
+        }
+        if(featuresList.contains(Feature.ISO_15118.getKey())) {
+            server.addFeatureProfile(iso15118Profile);
+        }
 
         server.open(ip, port, new ServerEvents() {
             @Override

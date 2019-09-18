@@ -1,5 +1,7 @@
 package com.omb.ocpp.config;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 
 public enum ConfigKey {
@@ -15,6 +17,10 @@ public enum ConfigKey {
     OCPP_SERVER_PORT("ocpp.server.port", "Port on which OCPP server will accept connections, default:%s, works in" +
             " combination with 'application.gui.mode:false'",
             8887),
+
+    OCPP_FEATURES_PROFILE_LIST("ocpp.features.profile.list", "Least of features supported by server",
+            new ArrayList<>(Arrays.asList("Core","FirmwareManagement","RemoteTrigger","LocalAuthList",
+                    "SmartCharging"))),
 
     REST_API_PORT("rest.api.port", "port on which REST server will accept connections, default:%s, works in" +
             " combination with 'application.gui.mode:false'",
