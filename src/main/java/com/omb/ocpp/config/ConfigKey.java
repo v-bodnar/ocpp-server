@@ -18,7 +18,8 @@ public enum ConfigKey {
             " combination with 'application.gui.mode:false'",
             8887),
 
-    OCPP_FEATURES_PROFILE_LIST("ocpp.features.profile.list", "Least of features supported by server",
+    OCPP_FEATURES_PROFILE_LIST("ocpp.features.profile.list", "List of features supported by server, " +
+            "default:Core,FirmwareManagement,RemoteTrigger,LocalAuthList",
             new ArrayList<>(Arrays.asList("Core","FirmwareManagement","RemoteTrigger","LocalAuthList",
                     "SmartCharging"))),
 
@@ -27,11 +28,13 @@ public enum ConfigKey {
             9090),
 
     SSL_ENABLED("ssl.enabled",
-            "Run ssl server with ssl context, works in combination with 'application.gui",
+            "Run ssl server with ssl context," +
+                    "works in combination with 'application.gui.mode:false'",
             false),
 
     SSL_KEYSTORE_UUID("ssl.keystore.uuid",
-            "Run ssl server with keystore for defined keystore uuid, works in combination with 'application.gui.mode:false'",
+            "if ssl enabled server will use keystore with given keystore uuid, " +
+                    "works in combination with 'application.gui.mode:false'",
             "none"),
 
     SSL_CLIENT_AUTH("ssl.client.auth",

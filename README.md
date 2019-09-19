@@ -31,28 +31,34 @@ cd ocpp-server
 gradle build
 ```
 
+**Configuration:**  
+You can use **OCPP_SERVER_HOME/ocpp-server.properties** to configure server
+
+Supported keys:
+ - application.gui.mode - Indicates that application should be started with/without GUI, 
+ possible values:  'true/false', default: true 
+ - ocpp.features.profile.list - List of features supported by server,
+ default: Core,FirmwareManagement,RemoteTrigger,LocalAuthList
+ - ocpp.server.ip - Ip on which server will accept OCPP connections, 
+ default:0.0.0.0, works in combination with 'application.gui.mode:false'
+ - ocpp.server.port - Port on which OCPP server will accept connections, 
+ default:8887, works in combination with 'application.gui.mode:false'
+ - rest.api.port - port on which REST server will accept connections, 
+ default:9090, works in combination with 'application.gui.mode:false'
+ - ssl.enabled - Run ssl server with ssl context
+ works in combination with 'application.gui.mode:false'
+ - ssl.keystore.uuid - if ssl enabled server will use keystore with given keystore uuid, 
+ works in combination with 'application.gui.mode:false'
+ - ssl.client.auth - Indicates if server needs to validate client certificate, 
+ works in combination with 'application.gui.mode:false'
+
 **Usage:**  
 Before using set **OCPP_SERVER_HOME** - environment variable 
 ``` 
 cd ocpp-server/build/libs/
-java -jar ocpp-server-0.1.jar <arguments>  
+java -jar ocpp-server-0.1.jar  
 ```
-**Arguments:**  
- - -h,--help  print this message  
- - -nogui,--nogui  indicates that application should be started dsfdsthout GUI.  
- - -ip,--ip <arg>  the ip on which server will accept OCPP and REST connections, default:127.0.0.1, works in 
- combination with -nogui  
- - -ocppPort,--ocppPort <arg>  port on which OCPP server will accept connections, default:8887, works in combination 
- with -nogui  
- - --restPort <arg>  port on which REST server will accept connections, default:9090, works in combination with -nogui
- - -keystoreUUID,--keystoreUUID <arg>                               run ssl server with keystore for defined keystore
-   uuid  
- - -clientAuthenticationNeeded,--clientAuthenticationNeeded <arg>   should server needed for client certificate
- - -keystoreCiphers,--keystoreCiphers <arg>                         list of keystore ciphers separated by comma
- - -createKeystoreCertificate                                       Create new keystore certificate
- - -deleteKeystoreCertificate <arg>                                 Delete keystore certificate
- - -showKeystoreConfig                                              Show keystore config file content
-
+   
 ## Changing server behavior using Groovy
 **$GROOVY_PATH = $OCPP_SERVER_HOME/groovy/**  
 After the first start of ocpp-server app you will get exception:
@@ -104,20 +110,7 @@ the trust store
 3. Go to tab "General", select server certificate that you want to use, check "Validate client certificate" if needed.
 
 **NO GUI mode:**
-* To create server certificate 
-```
-java -jar ocpp-server-0.1.jar -createKeystoreCertificate
-```
-* To list server certificates ids
-```
-java -jar ocpp-server-0.1.jar -showKeystoreConfig
-```
-* To run using one of certificates
-``` 
--jar ocpp-server-0.1.jar -nogui -keystoreUUID uuid-shown-by-previous-command -clientAuthenticationNeeded 
-```
-
-REST API also exposes CRUD methods for managing server and client certificates. In NO GUI mode client certificates can 
+REST API exposes CRUD methods for managing server and client certificates. In NO GUI mode client certificates can 
 only be uploaded using REST API or by manually adding certificate to SSL_PATH/trust-store.jks.
 
 ## REST API 
