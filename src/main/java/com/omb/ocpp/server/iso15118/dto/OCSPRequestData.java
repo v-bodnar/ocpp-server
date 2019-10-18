@@ -1,9 +1,13 @@
 package com.omb.ocpp.server.iso15118.dto;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.gson.annotations.SerializedName;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -115,9 +119,45 @@ public class OCSPRequestData {
     }
 
     public enum HashAlgorithm {
-        SHA_256,
-        SHA_384,
-        SHA_512;
+        @SerializedName("SHA256")
+        SHA_256("SHA256"),
+        @SerializedName("SHA384")
+        SHA_384("SHA384"),
+        @SerializedName("SHA512")
+        SHA_512("SHA512");
+        private final String value;
+        private static final Map<String, HashAlgorithm> CONSTANTS = new HashMap<>();
+
+        static {
+            for (HashAlgorithm c : values()) {
+                CONSTANTS.put(c.value, c);
+            }
+        }
+
+        HashAlgorithm(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return this.value;
+        }
+
+        @JsonValue
+        public String value() {
+            return this.value;
+        }
+
+        @JsonCreator
+        public static HashAlgorithm fromValue(String value) {
+            HashAlgorithm constant = CONSTANTS.get(value);
+            if (constant == null) {
+                throw new IllegalArgumentException(value);
+            } else {
+                return constant;
+            }
+        }
+
     }
 
     @Override

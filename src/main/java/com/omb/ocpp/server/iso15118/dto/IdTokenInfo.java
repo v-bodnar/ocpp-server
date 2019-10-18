@@ -1,5 +1,7 @@
 package com.omb.ocpp.server.iso15118.dto;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.gson.annotations.SerializedName;
 
 import javax.validation.Valid;
@@ -7,6 +9,8 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -150,25 +154,58 @@ public class IdTokenInfo {
 
     public enum Status {
         @SerializedName("Accepted")
-        ACCEPTED,
+        ACCEPTED("Accepted"),
         @SerializedName("Blocked")
-        BLOCKED,
+        BLOCKED("Blocked"),
         @SerializedName("ConcurrentTx")
-        CONCURRENT_T,
+        CONCURRENT_T("ConcurrentTx"),
         @SerializedName("Expired")
-        EXPIRED,
+        EXPIRED("Expired"),
         @SerializedName("Invalid")
-        INVALID,
+        INVALID("Invalid"),
         @SerializedName("NoCredit")
-        NO_CREDIT,
+        NO_CREDIT("NoCredit"),
         @SerializedName("NotAllowedTypeEVSE")
-        NOT_ALLOWED_TYPE_EVSE,
+        NOT_ALLOWED_TYPE_EVSE("NotAllowedTypeEVSE"),
         @SerializedName("NotAtThisLocation")
-        NOT_AT_THIS_LOCATION,
+        NOT_AT_THIS_LOCATION("NotAtThisLocation"),
         @SerializedName("NotAtThisTime")
-        NOT_AT_THIS_TIME,
+        NOT_AT_THIS_TIME("NotAtThisTime"),
         @SerializedName("Unknown")
-        UNKNOWN;
+        UNKNOWN("Unknown");
+
+        private final String value;
+        private static final Map<String, Status> CONSTANTS = new HashMap<>();
+
+        static {
+            for (Status c : values()) {
+                CONSTANTS.put(c.value, c);
+            }
+        }
+
+        Status(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return this.value;
+        }
+
+        @JsonValue
+        public String value() {
+            return this.value;
+        }
+
+        @JsonCreator
+        public static Status fromValue(String value) {
+            Status constant = CONSTANTS.get(value);
+            if (constant == null) {
+                throw new IllegalArgumentException(value);
+            } else {
+                return constant;
+            }
+        }
     }
 
 }

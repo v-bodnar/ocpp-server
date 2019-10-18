@@ -1,13 +1,17 @@
 
 package com.omb.ocpp.server.iso15118.dto;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.gson.annotations.SerializedName;
 import eu.chargetime.ocpp.model.Confirmation;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -87,19 +91,51 @@ public class AuthorizeResponse implements Confirmation {
 
     public enum CertificateStatus {
         @SerializedName("Accepted")
-        ACCEPTED,
+        ACCEPTED("Accepted"),
         @SerializedName("SignatureError")
-        SIGNATUREERROR,
+        SIGNATURE_ERROR("SignatureError"),
         @SerializedName("CertificateExpired")
-        CERTIFICATEEXPIRED,
+        CERTIFICATE_EXPIRED("CertificateExpired"),
         @SerializedName("CertificateRevoked")
-        CERTIFICATEREVOKED,
+        CERTIFICATE_REVOKED("CertificateRevoked"),
         @SerializedName("NoCertificateAvailable")
-        NOCERTIFICATEAVAILABLE,
+        NO_CERTIFICATE_AVAILABLE("NoCertificateAvailable"),
         @SerializedName("CertChainError")
-        CERTCHAINERROR,
+        CERT_CHAIN_ERROR("CertChainError"),
         @SerializedName("ContractCancelled")
-        CONTRACTCANCELLED;
+        CONTRACT_CANCELLED("ContractCancelled");
+        private final String value;
+        private static final Map<String, CertificateStatus> CONSTANTS = new HashMap<>();
+
+        static {
+            for (CertificateStatus c : values()) {
+                CONSTANTS.put(c.value, c);
+            }
+        }
+
+        CertificateStatus(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return this.value;
+        }
+
+        @JsonValue
+        public String value() {
+            return this.value;
+        }
+
+        @JsonCreator
+        public static CertificateStatus fromValue(String value) {
+            CertificateStatus constant = CONSTANTS.get(value);
+            if (constant == null) {
+                throw new IllegalArgumentException(value);
+            } else {
+                return constant;
+            }
+        }
     }
 
     @Override
