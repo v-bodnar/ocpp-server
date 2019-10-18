@@ -6,6 +6,7 @@ import eu.chargetime.ocpp.model.Confirmation;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -17,11 +18,16 @@ public class AuthorizeResponse implements Confirmation {
      */
     @SerializedName("idTokenInfo")
     @Valid
-//    @NotNull  HACK: Elam feature does not fulfill OCPP2.0 standard
+//    @NotNull  HACK: feature does not fulfill OCPP2.0 standard
     private IdTokenInfo idTokenInfo;
 
     @SerializedName("certificateStatus")
     private CertificateStatus certificateStatus;
+
+    @SerializedName("cacheExpiryDateTime")
+    @Valid
+//    @NotNull  HACK: feature does not fulfill OCPP2.0 standard
+    private Calendar cacheExpiryDateTime;
 
     @SerializedName("evseId")
     @Size(min = 1)
@@ -64,6 +70,16 @@ public class AuthorizeResponse implements Confirmation {
         this.evseId = evseId;
     }
 
+    @SerializedName("cacheExpiryDateTime")
+    public Calendar getCacheExpiryDateTime() {
+        return cacheExpiryDateTime;
+    }
+
+    @SerializedName("cacheExpiryDateTime")
+    public void setCacheExpiryDateTime(Calendar cacheExpiryDateTime) {
+        this.cacheExpiryDateTime = cacheExpiryDateTime;
+    }
+
     @Override
     public boolean validate() {
         return true;
@@ -97,12 +113,13 @@ public class AuthorizeResponse implements Confirmation {
         AuthorizeResponse that = (AuthorizeResponse) object;
         return Objects.equals(idTokenInfo, that.idTokenInfo) &&
                 certificateStatus == that.certificateStatus &&
+                Objects.equals(cacheExpiryDateTime, that.cacheExpiryDateTime) &&
                 Objects.equals(evseId, that.evseId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(idTokenInfo, certificateStatus, evseId);
+        return Objects.hash(idTokenInfo, certificateStatus, cacheExpiryDateTime, evseId);
     }
 
     @Override
@@ -110,8 +127,8 @@ public class AuthorizeResponse implements Confirmation {
         return "AuthorizeResponse{" +
                 "idTokenInfo=" + idTokenInfo +
                 ", certificateStatus=" + certificateStatus +
+                ", cacheExpiryDateTime=" + cacheExpiryDateTime +
                 ", evseId=" + evseId +
-                ", additionalProperties=" +
                 '}';
     }
 }
