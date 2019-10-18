@@ -45,6 +45,7 @@ dependencies {
     compile group: 'org.glassfish.jersey.media', name: 'jersey-media-multipart', version: '2.27'
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.4'
     compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.9.4'
+    compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jdk8', version: '2.9.4'
     compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.61'
     compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.61'
 
