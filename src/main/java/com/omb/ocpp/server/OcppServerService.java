@@ -172,7 +172,8 @@ public class OcppServerService {
 
     private JSONServer initializeJsonServer() {
         try {
-            return new JSONServer(coreProfile);
+            HandshakeResolver handshakeResolver = new HandshakeResolver(config.getString(ConfigKey.OCPP_AUTH_PASSWORD));
+            return new JSONServer(coreProfile, handshakeResolver);
         } catch (Exception e) {
             LOGGER.error("Error", e);
             throw new RuntimeException(e);
@@ -181,11 +182,12 @@ public class OcppServerService {
 
     private JSONServer initializeJsonSslServer() {
         try {
+            HandshakeResolver handshakeResolver = new HandshakeResolver(config.getString(ConfigKey.OCPP_AUTH_PASSWORD));
             WssFactoryBuilder wssFactoryBuilder = new BaseWssFactoryBuilderWrapper().
                     setCiphers(sslContextConfig.getCiphers()).
                     setClientAuthenticationNeeded(sslContextConfig.isClientAuthenticationNeeded()).
                     setSslContext(sslContextConfig.getSslContext());
-            return new JSONServer(coreProfile, wssFactoryBuilder, JSONConfiguration.get());
+            return new JSONServer(coreProfile, wssFactoryBuilder, JSONConfiguration.get(), handshakeResolver);
         } catch (Exception e) {
             LOGGER.error("Error", e);
             throw new RuntimeException(e);

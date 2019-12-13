@@ -17,10 +17,12 @@ public enum ConfigKey {
     OCPP_SERVER_PORT("ocpp.server.port", "Port on which OCPP server will accept connections, default:%s, works in" +
             " combination with 'application.gui.mode:false'",
             8887),
+    OCPP_AUTH_PASSWORD("ocpp.server.auth.password", "Password that has to be sent by client in order to connect",
+            ""),
 
     OCPP_FEATURES_PROFILE_LIST("ocpp.features.profile.list", "List of features supported by server, " +
             "default:Core,FirmwareManagement,RemoteTrigger,LocalAuthList",
-            new ArrayList<>(Arrays.asList("Core","FirmwareManagement","RemoteTrigger","LocalAuthList",
+            new ArrayList<>(Arrays.asList("Core", "FirmwareManagement", "RemoteTrigger", "LocalAuthList",
                     "SmartCharging"))),
 
     REST_API_PORT("rest.api.port", "port on which REST server will accept connections, default:%s, works in" +
@@ -45,6 +47,7 @@ public enum ConfigKey {
     SSL_KEYSTORE_CIPHERS("ssl.keystore.ciphers",
             "List of keystore ciphers separated by comma, works in combination with 'application.gui.mode:false'",
             new LinkedList<String>());
+
 
     private String key;
     private String comment;
