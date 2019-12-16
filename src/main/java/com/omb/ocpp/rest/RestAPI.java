@@ -11,6 +11,7 @@ import com.omb.ocpp.server.OcppServerService;
 import eu.chargetime.ocpp.NotConnectedException;
 import eu.chargetime.ocpp.OccurenceConstraintException;
 import eu.chargetime.ocpp.UnsupportedFeatureException;
+import eu.chargetime.ocpp.model.Confirmation;
 import eu.chargetime.ocpp.model.Request;
 import eu.chargetime.ocpp.model.core.ChangeAvailabilityRequest;
 import eu.chargetime.ocpp.model.core.ChangeConfigurationRequest;
@@ -42,9 +43,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import java.io.InputStream;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
 
 @Path("/")
 @Produces(MediaType.APPLICATION_JSON)
@@ -140,6 +146,91 @@ public class RestAPI {
     @Path("send-clear-charging-profile-request")
     public Response sendClearChargingProfileRequest(ClearChargingProfileRequest clearChargingProfileRequest) {
         return sendRequest(clearChargingProfileRequest);
+    }
+
+    @POST
+    @Path("send-all-reset-request")
+    public Response sendAllResetRequest(ResetRequest resetRequest) {
+        return sendRequestToAll(resetRequest);
+    }
+
+    @POST
+    @Path("send-all-get-diagnostics")
+    public Response sendToAllGetDiagnostics(GetDiagnosticsRequest getDiagnosticsRequest) {
+        return sendRequestToAll(getDiagnosticsRequest);
+    }
+
+    @POST
+    @Path("send-all-change-availability-request")
+    public Response sendToAllChangeAvailabilityRequest(ChangeAvailabilityRequest changeAvailabilityRequest) {
+        return sendRequestToAll(changeAvailabilityRequest);
+    }
+
+    @POST
+    @Path("send-all-change-configuration-request")
+    public Response sendToAllChangeConfigurationRequest(ChangeConfigurationRequest changeConfigurationRequest) {
+        return sendRequestToAll(changeConfigurationRequest);
+    }
+
+    @POST
+    @Path("send-all-clear-cache-request")
+    public Response sendToAllClearCacheRequest(ClearCacheRequest clearCacheRequest) {
+        return sendRequestToAll(clearCacheRequest);
+    }
+
+    @POST
+    @Path("send-all-data-transfer-request")
+    public Response sendToAllDataTransferRequest(DataTransferRequest dataTransferRequest) {
+        return sendRequestToAll(dataTransferRequest);
+    }
+
+    @POST
+    @Path("send-all-get-configuration-request")
+    public Response sendToAllGetConfigurationRequest(GetConfigurationRequest getConfigurationRequest) {
+        return sendRequestToAll(getConfigurationRequest);
+    }
+
+    @POST
+    @Path("send-all-remote-start-transaction-request")
+    public Response sendToAllRemoteStartTransactionRequest(RemoteStartTransactionRequest remoteStartTransactionRequest) {
+        return sendRequestToAll(remoteStartTransactionRequest);
+    }
+
+    @POST
+    @Path("send-all-remote-stop-transaction-request")
+    public Response sendToAllRemoteStopTransactionRequest(RemoteStopTransactionRequest remoteStopTransactionRequest) {
+        return sendRequestToAll(remoteStopTransactionRequest);
+    }
+
+
+    @POST
+    @Path("send-all-unlock-connector-request")
+    public Response sendToAllUnlockConnectorRequest(UnlockConnectorRequest unlockConnectorRequest) {
+        return sendRequestToAll(unlockConnectorRequest);
+    }
+
+    @POST
+    @Path("send-all-diagnostics-status-notification-request")
+    public Response sendToAllDiagnosticsStatusNotificationRequest(DiagnosticsStatusNotificationRequest diagnosticsStatusNotificationRequest) {
+        return sendRequestToAll(diagnosticsStatusNotificationRequest);
+    }
+
+    @POST
+    @Path("send-all-firmware-status-notification-request")
+    public Response sendToAllFirmwareStatusNotificationRequest(FirmwareStatusNotificationRequest firmwareStatusNotificationRequest) {
+        return sendRequestToAll(firmwareStatusNotificationRequest);
+    }
+
+    @POST
+    @Path("send-all-set-charging-profile-request")
+    public Response sendToAllSetChargingProfileRequest(SetChargingProfileRequest setChargingProfileRequest) {
+        return sendRequestToAll(setChargingProfileRequest);
+    }
+
+    @POST
+    @Path("send-all-clear-charging-profile-request")
+    public Response sendToAllClearChargingProfileRequest(ClearChargingProfileRequest clearChargingProfileRequest) {
+        return sendRequestToAll(clearChargingProfileRequest);
     }
 
     @POST
@@ -266,13 +357,63 @@ public class RestAPI {
         }
     }
 
-    private Response sendRequest(Request request) {
+    private Response sendRequestToAll(Request request) {
         try {
-            ocppServerService.sendToAll(request);
-            return Response.ok().build();
-        } catch (NotConnectedException | OccurenceConstraintException | UnsupportedFeatureException e) {
+            List<MultiClientResponse> responses = new LinkedList<>();
+            Map<UUID, CompletionStage<Confirmation>> responsePromises = ocppServerService.sendToAll(request);
+            for (Map.Entry<UUID, CompletionStage<Confirmation>> entry : responsePromises.entrySet()) {
+                responses.add(new MultiClientResponse(entry.getKey(), entry.getValue().toCompletableFuture().get()));
+            }
+
+            return Response.ok().entity(responses).build();
+        } catch (NotConnectedException | OccurenceConstraintException | UnsupportedFeatureException | InterruptedException | ExecutionException e) {
             LOGGER.error("Could not send request", e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), e.getMessage()).build();
+        }
+    }
+
+    private Response sendRequest(Request request) {
+        try {
+            return Response.ok().entity(ocppServerService.send(request).toCompletableFuture().get()).build();
+        } catch (NotConnectedException | OccurenceConstraintException | UnsupportedFeatureException | InterruptedException | ExecutionException e) {
+            LOGGER.error("Could not send request", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), e.getMessage()).build();
+        }
+    }
+
+    static class MultiClientResponse {
+        private final UUID uuid;
+        private final Confirmation confirmation;
+
+        public MultiClientResponse(UUID uuid, Confirmation confirmation) {
+            this.uuid = uuid;
+            this.confirmation = confirmation;
+        }
+
+        public UUID getUuid() {
+            return uuid;
+        }
+
+        public Confirmation getConfirmation() {
+            return confirmation;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            MultiClientResponse that = (MultiClientResponse) o;
+            return Objects.equals(uuid, that.uuid) &&
+                    Objects.equals(confirmation, that.confirmation);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(uuid, confirmation);
         }
     }
 }

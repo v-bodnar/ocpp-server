@@ -19,7 +19,7 @@ public class HandshakeResolver implements eu.chargetime.ocpp.HandshakeResolver{
 
     public void onHandshake(ClientHandshake request) throws InvalidDataException {
         String authString = request.getFieldValue("Authorization");
-        if (authString != null && !authString.isEmpty() && !decode(authString).equals(basicPassword)) {
+        if (basicPassword != null && !basicPassword.isEmpty() && authString != null && !authString.isEmpty() && !decode(authString).equals(basicPassword)) {
             LOGGER.error("Handshake failed because passwords do not match provided: {} expected: {}",
                     decode(authString), basicPassword);
             throw new InvalidDataException(CloseFrame.REFUSE, "Authorization Failed!");

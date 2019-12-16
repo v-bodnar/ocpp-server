@@ -4,8 +4,8 @@ import com.omb.ocpp.config.Config;
 import com.omb.ocpp.config.ConfigKey;
 import com.omb.ocpp.security.BaseWssFactoryBuilderWrapper;
 import com.omb.ocpp.server.handler.CoreEventHandler;
-import com.omb.ocpp.server.handler.ISO15118EventHandler;
 import com.omb.ocpp.server.handler.FirmwareManagementEventHandler;
+import com.omb.ocpp.server.handler.ISO15118EventHandler;
 import com.omb.ocpp.server.iso15118.ISO15118Profile;
 import eu.chargetime.ocpp.JSONConfiguration;
 import eu.chargetime.ocpp.JSONServer;
@@ -19,6 +19,7 @@ import eu.chargetime.ocpp.feature.profile.ServerFirmwareManagementProfile;
 import eu.chargetime.ocpp.feature.profile.ServerLocalAuthListProfile;
 import eu.chargetime.ocpp.feature.profile.ServerRemoteTriggerProfile;
 import eu.chargetime.ocpp.feature.profile.ServerSmartChargingProfile;
+import eu.chargetime.ocpp.model.Confirmation;
 import eu.chargetime.ocpp.model.Request;
 import eu.chargetime.ocpp.model.SessionInformation;
 import eu.chargetime.ocpp.wss.WssFactoryBuilder;
@@ -32,6 +33,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import static com.omb.ocpp.gui.StubRequestsFactory.toJson;
 
@@ -79,19 +82,19 @@ public class OcppServerService {
 
         server.addFeatureProfile(coreProfile);
 
-        if(featuresList.contains(Feature.FIRMWARE_MANAGEMENT.getKey())) {
+        if (featuresList.contains(Feature.FIRMWARE_MANAGEMENT.getKey())) {
             server.addFeatureProfile(firmwareProfile);
         }
-        if(featuresList.contains(Feature.REMOTE_TRIGGER.getKey())) {
+        if (featuresList.contains(Feature.REMOTE_TRIGGER.getKey())) {
             server.addFeatureProfile(remoteTriggerProfile);
         }
-        if(featuresList.contains(Feature.LOCAL_AUTH_LIST.getKey())) {
+        if (featuresList.contains(Feature.LOCAL_AUTH_LIST.getKey())) {
             server.addFeatureProfile(localAuthListProfile);
         }
-        if(featuresList.contains(Feature.SMART_CHARGING.getKey())) {
+        if (featuresList.contains(Feature.SMART_CHARGING.getKey())) {
             server.addFeatureProfile(smartChargingProfile);
         }
-        if(featuresList.contains(Feature.ISO_15118.getKey())) {
+        if (featuresList.contains(Feature.ISO_15118.getKey())) {
             server.addFeatureProfile(iso15118Profile);
         }
 
@@ -152,10 +155,33 @@ public class OcppServerService {
         }
     }
 
-    public void sendToAll(Request request) throws NotConnectedException, OccurenceConstraintException, UnsupportedFeatureException {
+    public Map<UUID, CompletionStage<Confirmation>> sendToAll(Request request) throws NotConnectedException,
+            OccurenceConstraintException,
+            UnsupportedFeatureException {
+        Map<UUID, CompletionStage<Confirmation>> responses = new HashMap<>();
         for (Map.Entry<UUID, SessionInformation> entry : sessionList.entrySet()) {
-            server.send(entry.getKey(), request);
+            responses.put(entry.getKey(), server.send(entry.getKey(), request));
         }
+        return responses;
+    }
+
+    public CompletionStage<Confirmation> send(Request request) throws NotConnectedException,
+            OccurenceConstraintException,
+            UnsupportedFeatureException {
+        if (sessionList.size() == 1) {
+            return server.send(sessionList.keySet().iterator().next(), request);
+        } else {
+            CompletableFuture<Confirmation> errorConfirmation = new CompletableFuture<>();
+            errorConfirmation.completeExceptionally(new Exception("There must to be exactly 1 client to be " +
+                    "connected, for this method to be used. Otherwise use sendToAll"));
+            return errorConfirmation;
+        }
+    }
+
+    public CompletionStage<Confirmation> send(UUID uuid, Request request) throws NotConnectedException,
+            OccurenceConstraintException,
+            UnsupportedFeatureException {
+        return server.send(uuid, request);
     }
 
     public Map<UUID, SessionInformation> getSessionList() {
