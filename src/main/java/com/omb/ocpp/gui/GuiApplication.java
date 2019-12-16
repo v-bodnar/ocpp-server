@@ -90,6 +90,10 @@ public class GuiApplication extends javafx.application.Application {
         highlightButton.setOnAction(event -> console.markLines(markerRegex.getText(), true));
         highlightButton.setPrefWidth(100);
 
+        Button copyButton = new Button("Copy highlight");
+        copyButton.setOnAction(event -> console.copySelected());
+        copyButton.setPrefWidth(100);
+
         VBox rightVBox = new VBox();
         VBox leftVBox = new VBox();
 
@@ -99,7 +103,7 @@ public class GuiApplication extends javafx.application.Application {
         hBox.setBackground(new Background(new BackgroundFill(Color.LIGHTGREY, null, null)));
 
         leftVBox.getChildren().addAll(selectedLine, scrollPane);
-        rightVBox.getChildren().addAll(clearButton, markerWord, markerRegex, highlightButton);
+        rightVBox.getChildren().addAll(clearButton, markerWord, markerRegex, highlightButton, copyButton);
         hBox.getChildren().addAll(leftVBox, rightVBox);
 
         splitPane.getItems().addAll(tabPane, hBox);

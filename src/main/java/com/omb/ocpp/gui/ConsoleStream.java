@@ -17,6 +17,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
 
 public class ConsoleStream extends OutputStream {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConsoleStream.class);
@@ -131,5 +132,18 @@ public class ConsoleStream extends OutputStream {
                 .stream()
                 .filter(node -> node instanceof Text && ((Text) node).getFill().equals(highlightColor))
                 .forEach(node -> ((Text) node).setFill(getColor(((Text) node).getText())));
+    }
+
+    public void copySelected(){
+        String copiedText = textFlow.getChildren()
+                .stream()
+                .filter(node -> node instanceof Text && ((Text) node).getFill().equals(highlightColor))
+                .map(node -> ((Text) node).getText())
+                .collect(Collectors.joining());
+
+        final Clipboard clipboard = Clipboard.getSystemClipboard();
+        final ClipboardContent content = new ClipboardContent();
+        content.putString(copiedText);
+        clipboard.setContent(content);
     }
 }

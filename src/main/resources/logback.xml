@@ -5,9 +5,25 @@
         </encoder>
     </appender>
 
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${OCPP_SERVER_HOME}/logs/server.log</File>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>logs/my.%d{yyyy-MM-dd}.log</FileNamePattern>
+            <MaxHistory>5</MaxHistory>
+        </rollingPolicy>
+
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </layout>
+
+    </appender>
+
     <root level="warn">
         <appender-ref ref="STDOUT" />
+        <appender-ref ref="FILE" />
     </root>
+
     <logger name="eu.chargetime" level="DEBUG" />
     <logger name="com.omb" level="DEBUG" />
     <logger name="eu.chargetime.ocpp.Queue" level="INFO"/>
