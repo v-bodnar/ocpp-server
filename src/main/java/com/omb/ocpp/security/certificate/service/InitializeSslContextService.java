@@ -5,6 +5,7 @@ import com.omb.ocpp.security.certificate.config.KeystoreCertificateConfig;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 import java.security.KeyStore;
 import java.util.Objects;
 import java.util.UUID;
@@ -29,7 +30,11 @@ public class InitializeSslContextService {
         KeyStore keyStore = keystoreApi.getKeyStores(keyStoreConfig.getUuid());
         keyManagerFactory.init(keyStore, keyStoreConfig.getKeystorePassword().toCharArray());
 
-        context.init(keyManagerFactory.getKeyManagers(), null, null);
+        KeyStore trustStore = keystoreApi.getTrustStore();
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance( "SunX509" );
+        tmf.init(trustStore);
+
+        context.init(keyManagerFactory.getKeyManagers(), tmf.getTrustManagers(), null);
 
         return context;
     }
