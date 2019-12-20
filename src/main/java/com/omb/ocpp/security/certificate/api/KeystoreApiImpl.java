@@ -97,6 +97,10 @@ public class KeystoreApiImpl implements KeystoreApi {
         return getKeyStores().stream().map(keyStore -> {
             try {
                 Certificate certificate = keyStore.getCertificate(OCPP_SERVER_CERT);
+                if(certificate == null){
+                    throw new CertificateParsingException("Certificate with alias ocpp_server_cert was not found, " +
+                            "check alias");
+                }
                 if (certificate instanceof X509Certificate) {
                     return (X509Certificate) certificate;
                 } else {
