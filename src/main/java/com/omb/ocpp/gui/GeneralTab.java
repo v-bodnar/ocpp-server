@@ -282,8 +282,7 @@ class GeneralTab {
                 UUID keystoreUUID = keystoreApi.getKeyStoreUUIDByCertificate(newValue);
                 SslContextConfig sslContextConfig = new SslContextConfig().
                         setSslContext(keystoreApi.initializeSslContext(keystoreUUID)).
-                        setClientAuthenticationNeeded(validateClientCertCheckBox.isSelected()).
-                        setClientAuthenticationNeeded(false);
+                        setClientAuthenticationNeeded(validateClientCertCheckBox.isSelected());
                 ocppServerService.setSslContextConfig(sslContextConfig);
             } catch (Exception e) {
                 LOGGER.error("Could not retrieve certificates data");
