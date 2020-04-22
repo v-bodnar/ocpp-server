@@ -23,6 +23,8 @@ import eu.chargetime.ocpp.model.Confirmation;
 import eu.chargetime.ocpp.model.Request;
 import eu.chargetime.ocpp.model.SessionInformation;
 import eu.chargetime.ocpp.wss.WssFactoryBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -145,7 +147,7 @@ public class OcppServerService {
                     "client by session token: %s", sessionToken))), request)
                     .whenComplete((confirmation, throwable) -> {
                         if (throwable == null) {
-                            LOGGER.debug("Client responded with: {}", confirmation);
+                            LOGGER.debug("Client responded with: {}", ToStringBuilder.reflectionToString(confirmation, ToStringStyle.SHORT_PREFIX_STYLE));
                         } else {
                             LOGGER.error("Error parsing response from client", throwable);
                         }
