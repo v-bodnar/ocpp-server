@@ -1,5 +1,6 @@
 package com.omb.ocpp.server.iso15118.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 import eu.chargetime.ocpp.model.Confirmation;
 
@@ -43,8 +44,10 @@ public class SignCertificateResponse implements Confirmation {
 
     public enum Status {
         @SerializedName("Accepted")
+        @JsonProperty("Accepted")
         ACCEPTED,
         @SerializedName("Rejected")
+        @JsonProperty("Rejected")
         REJECTED;
     }
 

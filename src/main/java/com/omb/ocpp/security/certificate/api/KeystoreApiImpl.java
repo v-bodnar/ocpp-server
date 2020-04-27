@@ -11,6 +11,7 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.jce.ECNamedCurveTable;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.operator.ContentSigner;
@@ -30,6 +31,7 @@ import java.net.InetAddress;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.PrivateKey;
+import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateParsingException;
@@ -175,15 +177,19 @@ public class KeystoreApiImpl implements KeystoreApi {
     @Override
     public String signCertificate(String csrString) {
         try {
+            Security.setProperty("crypto.policy", "unlimited");
+            Security.addProvider(new BouncyCastleProvider());
             String pkAlgorithm = "ECDSA";
             AlgorithmParameterSpec spec = ECNamedCurveTable.getParameterSpec("prime256v1");
             String signAlgorithm = "SHA256withECDSA";
             Instant validFrom = Instant.now();
-            Instant validTo = Instant.now().plus(1, ChronoUnit.YEARS);
+            Instant validTo = Instant.now().plus(90, ChronoUnit.DAYS);
             PKCS10CertificationRequest csr = parseStringToPKCS10(csrString);
 
             //Get CA key pair
-            List<KeystoreCertificateConfig> keystoreCertificateConfigs = getKeystoreConfigRegistry().getKeystoreCertificatesConfig();
+            List<KeystoreCertificateConfig> keystoreCertificateConfigs = getKeystoreConfigRegistry().getKeystoreCertificatesConfig().stream()
+                    .filter(keystoreCertificateConfig -> !keystoreCertificateConfig.getKeystorePath().toString().endsWith("trust-store.jks"))
+                    .collect(Collectors.toList());
             if (keystoreCertificateConfigs.isEmpty()) {
                 LOGGER.error("Can't sign certificate, please generate server certificate to use it as CA");
                 return "";
