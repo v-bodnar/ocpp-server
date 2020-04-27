@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.omb.ocpp.server.iso15118.dto.MessageTrigger;
+import eu.chargetime.ocpp.JSONCommunicator;
 import eu.chargetime.ocpp.PropertyConstraintException;
 import eu.chargetime.ocpp.model.Request;
 import eu.chargetime.ocpp.model.core.AvailabilityType;
@@ -61,6 +63,7 @@ public class StubRequestsFactory {
 
     private static final String NOT_SUPPORTED = "Request not supported";
     private static final String REQUEST_CONSTRUCTION_ERROR = "Request construction error";
+    private static final JSONCommunicator jsonCommunicator = new JSONCommunicator(null);
 
     private static ObjectMapper objectMapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
@@ -114,6 +117,8 @@ public class StubRequestsFactory {
                 return getSetChargingProfileRequest();
             } else if (requestClass.equals(ClearChargingProfileRequest.class)) {
                 return getClearChargingProfileRequest();
+            } else if (requestClass.equals(com.omb.ocpp.server.iso15118.dto.TriggerMessageRequest.class)) {
+                return getIso15118TriggerMessageRequest();
             } else {
                 return NOT_SUPPORTED;
             }
@@ -289,6 +294,15 @@ public class StubRequestsFactory {
         clearChargingProfileRequest.setStackLevel(1);
 
         return objectMapper.writeValueAsString(clearChargingProfileRequest);
+    }
+
+    private static String getIso15118TriggerMessageRequest() throws JsonProcessingException {
+        com.omb.ocpp.server.iso15118.dto.TriggerMessageRequest triggerMessageRequest =
+                new com.omb.ocpp.server.iso15118.dto.TriggerMessageRequest();
+        triggerMessageRequest.setConnectorId(1);
+        triggerMessageRequest.setRequestedMessage(MessageTrigger.SIGN_V2G_CERTIFICATE);
+
+        return (String) jsonCommunicator.packPayload(triggerMessageRequest);
     }
 
     public static <T extends Request> Optional<T> toRequest(String request, Class<T> requestClass) {

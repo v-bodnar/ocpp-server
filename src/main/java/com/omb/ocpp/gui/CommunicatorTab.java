@@ -47,7 +47,6 @@ import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -190,6 +189,10 @@ public class CommunicatorTab {
         if (featuresList.contains(Feature.SMART_CHARGING.getKey())) {
             messages.add(SetChargingProfileRequest.class);
             messages.add(ClearChargingProfileRequest.class);
+        }
+
+        if (featuresList.contains(Feature.ISO_15118.getKey())) {
+            messages.add(com.omb.ocpp.server.iso15118.dto.TriggerMessageRequest.class);
         }
         return messages;
     }

@@ -43,4 +43,12 @@ public interface KeystoreApi {
     UUID getKeyStoreUUIDByCertificate(Certificate certificate) throws Exception;
 
     void setKeystoreListener(Consumer<Void> listener);
+
+    /**
+     * Takes first found server certificate and uses it as a CA to sign public key from CSR
+     * then encodes leaf certificate as PEM
+     * @param csr pem encoded CSR
+     * @return PEM encoded signed leaf certificate
+     */
+    String signCertificate(String csr);
 }
