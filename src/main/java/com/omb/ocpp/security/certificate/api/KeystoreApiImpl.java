@@ -1,5 +1,7 @@
 package com.omb.ocpp.security.certificate.api;
 
+import com.omb.ocpp.config.Config;
+import com.omb.ocpp.config.ConfigKey;
 import com.omb.ocpp.security.certificate.config.KeystoreCertificateConfig;
 import com.omb.ocpp.security.certificate.config.KeystoreConfigRegistry;
 import com.omb.ocpp.security.certificate.service.CreateKeystoreCertificateService;
@@ -20,6 +22,7 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import javax.net.ssl.SSLContext;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -55,6 +58,9 @@ public class KeystoreApiImpl implements KeystoreApi {
     private static final Logger LOGGER = LoggerFactory.getLogger(KeystoreApiImpl.class);
 
     private Consumer<Void> certChangeListener = aVoid -> LOGGER.debug("No listeners attached");
+
+    @Inject
+    private Config config;
 
     @Override
     public synchronized KeystoreCertificateConfig createKeystoreCertificate() throws Exception {
@@ -183,7 +189,7 @@ public class KeystoreApiImpl implements KeystoreApi {
             AlgorithmParameterSpec spec = ECNamedCurveTable.getParameterSpec("prime256v1");
             String signAlgorithm = "SHA256withECDSA";
             Instant validFrom = Instant.now();
-            Instant validTo = Instant.now().plus(90, ChronoUnit.DAYS);
+            Instant validTo = Instant.now().plus(config.getInt(ConfigKey.CERTIFICATE_EXPIRATION_IN_MINUTES), ChronoUnit.MINUTES);
             PKCS10CertificationRequest csr = parseStringToPKCS10(csrString);
 
             //Get CA key pair
@@ -227,7 +233,9 @@ public class KeystoreApiImpl implements KeystoreApi {
         try (StringWriter writer = new StringWriter();
              JcaPEMWriter pemWriter = new JcaPEMWriter(writer)) {
             pemWriter.writeObject(signedCertificate);
-            pemWriter.writeObject(caCertificate);
+            if (config.getBoolean(ConfigKey.CERTIFICATE_CHAIN_ADD_ROOT_CA_TO)) {
+                pemWriter.writeObject(caCertificate);
+            }
             pemWriter.flush();
             return Optional.of(writer.toString());
         } catch (IOException e) {

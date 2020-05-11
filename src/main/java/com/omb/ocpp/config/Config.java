@@ -92,8 +92,7 @@ public class Config {
         try {
             return config.getInt(configKey.getKey(), (int) configKey.getDefaultValue());
         } catch (ConversionException e) {
-            LOGGER.error(String.format(DEFAULT_VALUE_MESSAGE,
-                    configKey.getKey(), configKey.getDefaultValue()), e);
+            LOGGER.error(String.format(DEFAULT_VALUE_MESSAGE, configKey.getKey(), configKey.getDefaultValue()), e);
             return (int) configKey.getDefaultValue();
         }
     }
@@ -104,8 +103,7 @@ public class Config {
             return config.getCollection(String.class, configKey.getKey(), new ArrayList<>(),
                     (ArrayList<String>) configKey.getDefaultValue());
         } catch (ConversionException e) {
-            LOGGER.error(String.format(DEFAULT_VALUE_MESSAGE,
-                    configKey.getKey(), configKey.getDefaultValue()), e);
+            LOGGER.error(String.format(DEFAULT_VALUE_MESSAGE, configKey.getKey(), configKey.getDefaultValue()), e);
             return (LinkedList<String>) configKey.getDefaultValue();
         }
     }
@@ -114,8 +112,7 @@ public class Config {
         try {
             return config.getBoolean(configKey.getKey(), (boolean) configKey.getDefaultValue());
         } catch (ConversionException e) {
-            LOGGER.error(String.format(DEFAULT_VALUE_MESSAGE,
-                    configKey.getKey(), configKey.getDefaultValue()), e);
+            LOGGER.error(String.format(DEFAULT_VALUE_MESSAGE, configKey.getKey(), configKey.getDefaultValue()), e);
             return (boolean) configKey.getDefaultValue();
         }
     }

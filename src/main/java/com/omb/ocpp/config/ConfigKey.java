@@ -22,7 +22,7 @@ public enum ConfigKey {
 
     OCPP_FEATURES_PROFILE_LIST("ocpp.features.profile.list", "List of features supported by server, " +
             "default:Core,FirmwareManagement,RemoteTrigger,LocalAuthList",
-            new ArrayList<>(Arrays.asList("Core", "FirmwareManagement", "RemoteTrigger", "LocalAuthList",
+            new ArrayList<>(Arrays.asList("Core", "FirmwareManagement", "RemoteTrigger", "LocalAuthList", "ISO_15118",
                     "SmartCharging"))),
 
     REST_API_PORT("rest.api.port", "port on which REST server will accept connections, default:%s, works in" +
@@ -46,8 +46,16 @@ public enum ConfigKey {
 
     SSL_KEYSTORE_CIPHERS("ssl.keystore.ciphers",
             "List of keystore ciphers separated by comma, works in combination with 'application.gui.mode:false'",
-            new LinkedList<String>());
+            new LinkedList<String>()),
 
+    CERTIFICATE_CHAIN_ADD_ROOT_CA_TO("certificate.chain.add.root.ca",
+            "Should ROOT CA be added to certificate chain",
+            false),
+
+    CERTIFICATE_EXPIRATION_IN_MINUTES("certificate.expiration.minutes",
+            "Certificate valid in minutes",
+            90)
+    ;
 
     private String key;
     private String comment;
