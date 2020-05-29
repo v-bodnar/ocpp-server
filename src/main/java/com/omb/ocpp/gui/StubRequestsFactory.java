@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.omb.ocpp.server.iso15118.dto.FirmwareType;
 import com.omb.ocpp.server.iso15118.dto.MessageTrigger;
+import com.omb.ocpp.server.iso15118.dto.SignedUpdateFirmwareRequest;
 import eu.chargetime.ocpp.JSONCommunicator;
 import eu.chargetime.ocpp.PropertyConstraintException;
 import eu.chargetime.ocpp.model.Request;
@@ -119,6 +121,8 @@ public class StubRequestsFactory {
                 return getClearChargingProfileRequest();
             } else if (requestClass.equals(com.omb.ocpp.server.iso15118.dto.TriggerMessageRequest.class)) {
                 return getIso15118TriggerMessageRequest();
+            } else if (requestClass.equals(SignedUpdateFirmwareRequest.class)) {
+                return getSignedUpdateFirmwareRequest();
             } else {
                 return NOT_SUPPORTED;
             }
@@ -236,6 +240,32 @@ public class StubRequestsFactory {
         updateFirmwareRequest.setRetryInterval(5);
         updateFirmwareRequest.setRetrieveDate(startDate);
         return objectMapper.writeValueAsString(updateFirmwareRequest);
+    }
+
+    private static String getSignedUpdateFirmwareRequest() throws JsonProcessingException {
+
+        Calendar now = Calendar.getInstance();
+
+        Calendar retrieveDate = (Calendar) now.clone();
+        retrieveDate.add(Calendar.DAY_OF_MONTH, 1);
+
+        Calendar installDate = (Calendar) now.clone();
+        installDate.add(Calendar.DAY_OF_MONTH, 2);
+
+        FirmwareType firmwareType = new FirmwareType();
+        firmwareType.setSignature("signature");
+        firmwareType.setSigningCertificate("signingCertificate");
+        firmwareType.setLocation("ftp://localhost/downloadFolder");
+        firmwareType.setRetrieveDateTime(retrieveDate);
+        firmwareType.setInstallDateTime(installDate);
+
+        SignedUpdateFirmwareRequest request = new SignedUpdateFirmwareRequest();
+        request.setRequestId(1);
+        request.setFirmware(firmwareType);
+        request.setRetries(2);
+        request.setRetryInterval(5);
+
+        return objectMapper.writeValueAsString(request);
     }
 
     private static String getGetLocalListVersionRequest() throws JsonProcessingException {

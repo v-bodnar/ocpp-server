@@ -2,9 +2,9 @@ package com.omb.ocpp.server.iso15118;
 
 import com.omb.ocpp.server.handler.ISO15118EventHandler;
 import com.omb.ocpp.server.iso15118.dto.AuthorizeRequest;
-import com.omb.ocpp.server.iso15118.dto.CertificateSignedRequest;
 import com.omb.ocpp.server.iso15118.dto.Get15118EVCertificateRequest;
 import com.omb.ocpp.server.iso15118.dto.SignCertificateRequest;
+import com.omb.ocpp.server.iso15118.dto.SignedUpdateFirmwareRequest;
 import eu.chargetime.ocpp.feature.Feature;
 import eu.chargetime.ocpp.feature.ProfileFeature;
 import eu.chargetime.ocpp.feature.profile.Profile;
@@ -27,6 +27,7 @@ public class ISO15118Profile implements Profile {
         this.features.add(new CertificateSignedFeature(this));
         this.features.add(new SignCertificateFeature(this));
         this.features.add(new TriggerMessageFeature(this));
+        this.features.add(new SignedUpdateFirmwareFeature(this));
         this.eventHandler = eventHandler;
     }
 
@@ -43,6 +44,8 @@ public class ISO15118Profile implements Profile {
             return this.eventHandler.handleGetCertificateRequest(uuid, (Get15118EVCertificateRequest) request);
         } else if (request instanceof SignCertificateRequest) {
             return this.eventHandler.handleSignCertificateRequest(uuid, (SignCertificateRequest) request);
+        } else if (request instanceof SignedUpdateFirmwareRequest) {
+            return this.eventHandler.handleSignedUpdateFirmwareRequest(uuid, (SignedUpdateFirmwareRequest) request);
         } else {
             LOGGER.error("Unknown message for custom Feature arrived");
             return null;
