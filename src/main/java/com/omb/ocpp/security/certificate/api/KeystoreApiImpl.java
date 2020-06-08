@@ -9,6 +9,9 @@ import com.omb.ocpp.security.certificate.service.CreateOrGetKeystoreCertificates
 import com.omb.ocpp.security.certificate.service.DeleteKeystoreCertificateConfigService;
 import com.omb.ocpp.security.certificate.service.GetKeyStoreDetailsService;
 import com.omb.ocpp.security.certificate.service.InitializeSslContextService;
+import org.apache.commons.lang3.tuple.Pair;
+import org.bouncycastle.asn1.ASN1OutputStream;
+import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
@@ -19,12 +22,14 @@ import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.net.ssl.SSLContext;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -42,6 +47,8 @@ import java.security.cert.X509Certificate;
 import java.security.spec.AlgorithmParameterSpec;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -55,6 +62,7 @@ import static com.omb.ocpp.security.certificate.KeystoreConstants.OCPP_SERVER_CE
 import static com.omb.ocpp.security.certificate.KeystoreConstants.OCPP_SERVER_PRIVATE_KEY;
 
 public class KeystoreApiImpl implements KeystoreApi {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(KeystoreApiImpl.class);
 
     private Consumer<Void> certChangeListener = aVoid -> LOGGER.debug("No listeners attached");
@@ -181,52 +189,69 @@ public class KeystoreApiImpl implements KeystoreApi {
     }
 
     @Override
-    public String signCertificate(String csrString) {
+    public String signPemCertificate(String csrString) {
         try {
-            Security.setProperty("crypto.policy", "unlimited");
-            Security.addProvider(new BouncyCastleProvider());
-            String pkAlgorithm = "ECDSA";
-            AlgorithmParameterSpec spec = ECNamedCurveTable.getParameterSpec("prime256v1");
-            String signAlgorithm = "SHA256withECDSA";
-            Instant validFrom = Instant.now();
-            Instant validTo = Instant.now().plus(config.getInt(ConfigKey.CERTIFICATE_EXPIRATION_IN_MINUTES), ChronoUnit.MINUTES);
-            PKCS10CertificationRequest csr = parseStringToPKCS10(csrString);
-
-            //Get CA key pair
-            List<KeystoreCertificateConfig> keystoreCertificateConfigs = getKeystoreConfigRegistry().getKeystoreCertificatesConfig().stream()
-                    .filter(keystoreCertificateConfig -> !keystoreCertificateConfig.getKeystorePath().toString().endsWith("trust-store.jks"))
-                    .collect(Collectors.toList());
-            if (keystoreCertificateConfigs.isEmpty()) {
-                LOGGER.error("Can't sign certificate, please generate server certificate to use it as CA");
-                return "";
-            }
-            KeystoreCertificateConfig keyStoreConfig = keystoreCertificateConfigs.get(0);
-            KeyStore keyStore = getKeyStores(keyStoreConfig.getUuid());
-            PrivateKey caPrivateKey = (PrivateKey) keyStore.getKey(OCPP_SERVER_PRIVATE_KEY, keyStoreConfig.getKeystorePassword().toCharArray());
-            Certificate caCertificate = keyStore.getCertificate(OCPP_SERVER_CERT);
-
-            //Add cert information
-            BigInteger certSerial = BigInteger.valueOf(new Random().nextInt());
-            String domainName = InetAddress.getLocalHost().getHostName();
-            X500Name issuerName = new X500Name("CN=" + domainName);
-            X509v3CertificateBuilder certificateBuilder =
-                    new X509v3CertificateBuilder(issuerName, certSerial, Date.from(validFrom), Date.from(validTo), csr.getSubject(), csr.getSubjectPublicKeyInfo());
-
-            //Add cert signature
-            ContentSigner signer = new JcaContentSignerBuilder(signAlgorithm).build(caPrivateKey);
-            X509CertificateHolder certificateHolder = certificateBuilder.build(signer);
-
-            //Create certificate in BC format
-            org.bouncycastle.asn1.x509.Certificate bcCertificate = certificateHolder.toASN1Structure();
-
-            //Convert BC format to regular Java certificate
-            CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509", "BC");
-            Certificate certificate = certificateFactory.generateCertificate(new ByteArrayInputStream(bcCertificate.getEncoded()));
-            return pemEncode(caCertificate, certificate).orElse("");
+            Pair<Certificate, Certificate> certificatePair = generateCertificate(csrString);
+            return pemEncode(certificatePair.getLeft(), certificatePair.getRight()).orElse("");
         } catch (Exception e) {
-            LOGGER.error("Could not create certificate", e);
+            LOGGER.error("Could not create pem certificate", e);
             return "";
         }
+    }
+
+    @Override
+    public List<String> signDerCertificate(String csrString) {
+        try {
+            Pair<Certificate, Certificate> certificatePair = generateCertificate(csrString);
+            return derEncode(certificatePair.getLeft(), certificatePair.getRight());
+        } catch (Exception e) {
+            LOGGER.error("Could not create der certificate", e);
+            return Collections.emptyList();
+        }
+    }
+
+    private Pair generateCertificate(String csrString) throws Exception {
+
+        Security.setProperty("crypto.policy", "unlimited");
+        Security.addProvider(new BouncyCastleProvider());
+        String signAlgorithm = "SHA256withECDSA";
+        Instant validFrom = Instant.now();
+        Instant validTo = Instant.now().plus(config.getInt(ConfigKey.CERTIFICATE_EXPIRATION_IN_MINUTES), ChronoUnit.MINUTES);
+        PKCS10CertificationRequest csr = parseStringToPKCS10(csrString);
+
+        //Get CA key pair
+        List<KeystoreCertificateConfig> keystoreCertificateConfigs = getKeystoreConfigRegistry()
+                .getKeystoreCertificatesConfig()
+                .stream()
+                .filter(keystoreCertificateConfig -> !keystoreCertificateConfig.getKeystorePath().toString().endsWith("trust-store.jks"))
+                .collect(Collectors.toList());
+        if (keystoreCertificateConfigs.isEmpty()) {
+            throw new Exception("Can't sign certificate, please generate server certificate to use it as CA");
+        }
+        KeystoreCertificateConfig keyStoreConfig = keystoreCertificateConfigs.get(0);
+        KeyStore keyStore = getKeyStores(keyStoreConfig.getUuid());
+        PrivateKey caPrivateKey = (PrivateKey) keyStore.getKey(OCPP_SERVER_PRIVATE_KEY, keyStoreConfig.getKeystorePassword().toCharArray());
+        Certificate caCertificate = keyStore.getCertificate(OCPP_SERVER_CERT);
+
+        //Add cert information
+        BigInteger certSerial = BigInteger.valueOf(new Random().nextInt());
+        String domainName = InetAddress.getLocalHost().getHostName();
+        X500Name issuerName = new X500Name("CN=" + domainName);
+        X509v3CertificateBuilder certificateBuilder =
+                new X509v3CertificateBuilder(issuerName, certSerial, Date.from(validFrom), Date.from(validTo), csr.getSubject(), csr.getSubjectPublicKeyInfo());
+
+        //Add cert signature
+        ContentSigner signer = new JcaContentSignerBuilder(signAlgorithm).build(caPrivateKey);
+        X509CertificateHolder certificateHolder = certificateBuilder.build(signer);
+
+        //Create certificate in BC format
+        org.bouncycastle.asn1.x509.Certificate bcCertificate = certificateHolder.toASN1Structure();
+
+        //Convert BC format to regular Java certificate
+        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509", "BC");
+        Certificate certificate = certificateFactory.generateCertificate(new ByteArrayInputStream(bcCertificate.getEncoded()));
+
+        return Pair.of(caCertificate, certificate);
     }
 
     private Optional<String> pemEncode(Certificate caCertificate, Certificate signedCertificate) {
@@ -241,6 +266,29 @@ public class KeystoreApiImpl implements KeystoreApi {
         } catch (IOException e) {
             LOGGER.error("Can't pem encrypt", e);
             return Optional.empty();
+        }
+    }
+
+    private List<String> derEncode(Certificate caCertificate, Certificate signedCertificate) throws Exception {
+        List<String> certificates = new ArrayList<>();
+        if (config.getBoolean(ConfigKey.CERTIFICATE_CHAIN_ADD_ROOT_CA_TO)) {
+            certificates.add(derEncode(caCertificate));
+        }
+        certificates.add(derEncode(signedCertificate));
+        return certificates;
+    }
+
+    private String derEncode(Certificate certificate) throws Exception {
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+            ASN1OutputStream asn1OutputStream = new ASN1OutputStream(os);
+            try {
+                ASN1Primitive asn1Primitive = ASN1Primitive.fromByteArray(certificate.getEncoded());
+                asn1OutputStream.writeObject(asn1Primitive);
+                asn1OutputStream.flush();
+                return new String(Hex.encode(os.toByteArray()));
+            } finally {
+                asn1OutputStream.close();
+            }
         }
     }
 

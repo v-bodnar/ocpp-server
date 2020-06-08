@@ -47,8 +47,18 @@ public interface KeystoreApi {
     /**
      * Takes first found server certificate and uses it as a CA to sign public key from CSR
      * then encodes leaf certificate as PEM
+     *
      * @param csr pem encoded CSR
      * @return PEM encoded signed leaf certificate
      */
-    String signCertificate(String csr);
+    String signPemCertificate(String csr);
+
+    /**
+     * Takes first found server certificate and uses it as a CA to sign public key from CSR
+     * then encodes leaf certificate as DER
+     *
+     * @param csr pem encoded CSR
+     * @return DER encoded signed leaf certificate
+     */
+    List<String> signDerCertificate(String csr);
 }
