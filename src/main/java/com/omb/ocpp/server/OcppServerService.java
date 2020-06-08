@@ -66,7 +66,7 @@ public class OcppServerService {
         this.remoteTriggerProfile = new ServerRemoteTriggerProfile();
         this.localAuthListProfile = new ServerLocalAuthListProfile();
         this.smartChargingProfile = new ServerSmartChargingProfile();
-        this.iso15118Profile = new ISO15118Profile(iso15118EventHandler);
+        this.iso15118Profile = new ISO15118Profile(iso15118EventHandler, config);
     }
 
     public void start(String ip, int port) {

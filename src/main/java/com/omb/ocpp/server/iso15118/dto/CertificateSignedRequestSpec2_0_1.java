@@ -5,12 +5,13 @@ import eu.chargetime.ocpp.model.Request;
 
 import java.util.Objects;
 
-public class CertificateSignedRequest implements Request {
+public class CertificateSignedRequestSpec2_0_1 implements Request {
+
     @SerializedName("certificateChain")
     private String certificateChain;
+
     @SerializedName("certificateType")
     private CertificateSigningUseEnumType certificateType;
-
 
     public String getCertificateChain() {
         return certificateChain;
@@ -36,7 +37,7 @@ public class CertificateSignedRequest implements Request {
         if (object == null || getClass() != object.getClass()) {
             return false;
         }
-        CertificateSignedRequest that = (CertificateSignedRequest) object;
+        CertificateSignedRequestSpec2_0_1 that = (CertificateSignedRequestSpec2_0_1) object;
         return Objects.equals(certificateChain, that.certificateChain) &&
                 certificateType == that.certificateType;
     }

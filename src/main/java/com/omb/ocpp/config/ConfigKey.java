@@ -1,5 +1,7 @@
 package com.omb.ocpp.config;
 
+import com.omb.ocpp.server.iso15118.OcppCertificateSignedSpecification;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -54,7 +56,13 @@ public enum ConfigKey {
 
     CERTIFICATE_EXPIRATION_IN_MINUTES("certificate.expiration.minutes",
             "Certificate valid in minutes",
-            90)
+            90),
+
+    CERTIFICATE_SIGNED_SPEC_VERSION(
+            "CertificateSignedSpecVersion",
+            "Version of ocpp signed certificate. Current values are: OCPP_2_0, OCPP_2_0_1",
+            OcppCertificateSignedSpecification.OCPP_2_0.name())
+
     ;
 
     private String key;

@@ -1,5 +1,7 @@
 package com.omb.ocpp.server.iso15118;
 
+import com.omb.ocpp.config.Config;
+import com.omb.ocpp.config.ConfigKey;
 import com.omb.ocpp.server.handler.ISO15118EventHandler;
 import com.omb.ocpp.server.iso15118.dto.AuthorizeRequest;
 import com.omb.ocpp.server.iso15118.dto.Get15118EVCertificateRequest;
@@ -21,10 +23,17 @@ public class ISO15118Profile implements Profile {
     private ISO15118EventHandler eventHandler;
     private ArrayList<Feature> features = new ArrayList();
 
-    public ISO15118Profile(ISO15118EventHandler eventHandler) {
+    public ISO15118Profile(ISO15118EventHandler eventHandler, Config config) {
         this.features.add(new AuthorizeFeature(this));
         this.features.add(new Get15118EVCertificateFeature(this));
-        this.features.add(new CertificateSignedFeature(this));
+
+        OcppCertificateSignedSpecification certificateSignedSpecification = OcppCertificateSignedSpecification.valueOf(config.getString(ConfigKey.CERTIFICATE_SIGNED_SPEC_VERSION));
+        if (certificateSignedSpecification == OcppCertificateSignedSpecification.OCPP_2_0) {
+            this.features.add(new CertificateSignedFeatureSpec2_0(this));
+        } else {
+            this.features.add(new CertificateSignedFeatureSpec2_0_1(this));
+        }
+
         this.features.add(new SignCertificateFeature(this));
         this.features.add(new TriggerMessageFeature(this));
         this.features.add(new SignedUpdateFirmwareFeature(this));
