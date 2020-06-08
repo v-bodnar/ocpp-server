@@ -1,32 +1,33 @@
 package com.omb.ocpp.server.iso15118.dto;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.chargetime.ocpp.model.Request;
+import com.google.gson.annotations.SerializedName;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Collections.unmodifiableList;
-import static java.util.Objects.requireNonNull;
 
 public class CertificateSignedRequestSpec2_0 implements Request {
 
-    @JsonProperty("cert")
-    private final List<String> certs;
+    @SerializedName("cert")
+    private List<String> certs = new ArrayList<>();
 
-    @JsonProperty("typeOfCertificate")
-    private final CertificateSigningUseEnumType certificateType;
+    @SerializedName("typeOfCertificate")
+    private CertificateSigningUseEnumType certificateType;
 
-    @JsonCreator
-    public CertificateSignedRequestSpec2_0(@JsonProperty("cert") List<String> certs, @JsonProperty("typeOfCertificate") CertificateSigningUseEnumType certificateType) {
-        this.certs = requireNonNull(certs);
-        this.certificateType = certificateType;
+    public void setCerts(List<String> certs) {
+        this.certs = certs;
     }
 
     public List<String> getCerts() {
         return unmodifiableList(certs);
+    }
+
+    public void setCertificateType(CertificateSigningUseEnumType certificateType) {
+        this.certificateType = certificateType;
     }
 
     public Optional<CertificateSigningUseEnumType> getCertificateType() {
