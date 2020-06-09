@@ -59,7 +59,7 @@ public enum ConfigKey {
             90),
 
     CERTIFICATE_SIGNED_SPEC_VERSION(
-            "CertificateSignedSpecVersion",
+            "certificate.signed.spec.version",
             "Version of ocpp signed certificate. Current values are: OCPP_2_0, OCPP_2_0_1",
             OcppCertificateSignedSpecification.OCPP_2_0.name())
 
