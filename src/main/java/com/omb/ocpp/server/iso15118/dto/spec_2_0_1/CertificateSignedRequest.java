@@ -1,11 +1,12 @@
-package com.omb.ocpp.server.iso15118.dto;
+package com.omb.ocpp.server.iso15118.dto.spec_2_0_1;
 
 import com.google.gson.annotations.SerializedName;
+import com.omb.ocpp.server.iso15118.dto.CertificateSigningUseEnumType;
 import eu.chargetime.ocpp.model.Request;
 
 import java.util.Objects;
 
-public class CertificateSignedRequestSpec2_0_1 implements Request {
+public class CertificateSignedRequest implements Request {
 
     @SerializedName("certificateChain")
     private String certificateChain;
@@ -37,7 +38,7 @@ public class CertificateSignedRequestSpec2_0_1 implements Request {
         if (object == null || getClass() != object.getClass()) {
             return false;
         }
-        CertificateSignedRequestSpec2_0_1 that = (CertificateSignedRequestSpec2_0_1) object;
+        CertificateSignedRequest that = (CertificateSignedRequest) object;
         return Objects.equals(certificateChain, that.certificateChain) &&
                 certificateType == that.certificateType;
     }

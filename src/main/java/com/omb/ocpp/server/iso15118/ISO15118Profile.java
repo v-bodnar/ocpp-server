@@ -29,9 +29,10 @@ public class ISO15118Profile implements Profile {
 
         OcppCertificateSignedSpecification certificateSignedSpecification = OcppCertificateSignedSpecification.valueOf(config.getString(ConfigKey.CERTIFICATE_SIGNED_SPEC_VERSION));
         if (certificateSignedSpecification == OcppCertificateSignedSpecification.OCPP_2_0) {
-            this.features.add(new CertificateSignedFeatureSpec2_0(this));
-        } else {
-            this.features.add(new CertificateSignedFeatureSpec2_0_1(this));
+            this.features.add(new com.omb.ocpp.server.iso15118.spec_2_0.CertificateSignedFeature(this));
+        }
+        if (certificateSignedSpecification == OcppCertificateSignedSpecification.OCPP_2_0_1) {
+            this.features.add(new com.omb.ocpp.server.iso15118.spec_2_0_1.CertificateSignedFeature(this));
         }
 
         this.features.add(new SignCertificateFeature(this));

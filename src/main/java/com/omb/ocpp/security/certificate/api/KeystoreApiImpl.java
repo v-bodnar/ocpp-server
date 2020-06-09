@@ -15,7 +15,6 @@ import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
-import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
@@ -44,7 +43,6 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
-import java.security.spec.AlgorithmParameterSpec;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -255,8 +253,7 @@ public class KeystoreApiImpl implements KeystoreApi {
     }
 
     private Optional<String> pemEncode(Certificate caCertificate, Certificate signedCertificate) {
-        try (StringWriter writer = new StringWriter();
-             JcaPEMWriter pemWriter = new JcaPEMWriter(writer)) {
+        try (StringWriter writer = new StringWriter(); JcaPEMWriter pemWriter = new JcaPEMWriter(writer)) {
             pemWriter.writeObject(signedCertificate);
             if (config.getBoolean(ConfigKey.CERTIFICATE_CHAIN_ADD_ROOT_CA_TO)) {
                 pemWriter.writeObject(caCertificate);
@@ -271,10 +268,10 @@ public class KeystoreApiImpl implements KeystoreApi {
 
     private List<String> derEncode(Certificate caCertificate, Certificate signedCertificate) throws Exception {
         List<String> certificates = new ArrayList<>();
+        certificates.add(derEncode(signedCertificate));
         if (config.getBoolean(ConfigKey.CERTIFICATE_CHAIN_ADD_ROOT_CA_TO)) {
             certificates.add(derEncode(caCertificate));
         }
-        certificates.add(derEncode(signedCertificate));
         return certificates;
     }
 

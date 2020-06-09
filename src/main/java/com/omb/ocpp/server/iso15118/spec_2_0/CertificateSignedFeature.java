@@ -1,21 +1,20 @@
-package com.omb.ocpp.server.iso15118;
+package com.omb.ocpp.server.iso15118.spec_2_0;
 
-import com.omb.ocpp.server.iso15118.dto.CertificateSignedRequestSpec2_0_1;
 import com.omb.ocpp.server.iso15118.dto.CertificateSignedResponse;
 import eu.chargetime.ocpp.feature.ProfileFeature;
 import eu.chargetime.ocpp.feature.profile.Profile;
 import eu.chargetime.ocpp.model.Confirmation;
 import eu.chargetime.ocpp.model.Request;
 
-public class CertificateSignedFeatureSpec2_0_1 extends ProfileFeature {
+public class CertificateSignedFeature extends ProfileFeature {
 
-    public CertificateSignedFeatureSpec2_0_1(Profile ownerProfile) {
+    public CertificateSignedFeature(Profile ownerProfile) {
         super(ownerProfile);
     }
 
     @Override
     public Class<? extends Request> getRequestType() {
-        return CertificateSignedRequestSpec2_0_1.class;
+        return com.omb.ocpp.server.iso15118.dto.spec_2_0.CertificateSignedRequest.class;
     }
 
     @Override
