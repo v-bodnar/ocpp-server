@@ -14,7 +14,7 @@ public class CertificateSignedFeature extends ProfileFeature {
 
     @Override
     public Class<? extends Request> getRequestType() {
-        return com.omb.ocpp.server.iso15118.dto.spec_2_0_1.CertificateSignedRequest.class;
+        return com.omb.ocpp.server.iso15118.dto.certificate.signing.spec_2_0_1.CertificateSignedRequest.class;
     }
 
     @Override

@@ -5,7 +5,7 @@ import com.omb.ocpp.config.ConfigKey;
 import com.omb.ocpp.server.handler.ISO15118EventHandler;
 import com.omb.ocpp.server.iso15118.dto.AuthorizeRequest;
 import com.omb.ocpp.server.iso15118.dto.Get15118EVCertificateRequest;
-import com.omb.ocpp.server.iso15118.dto.SignCertificateRequest;
+import com.omb.ocpp.server.iso15118.dto.certificate.signing.SignCertificateRequestSupport;
 import com.omb.ocpp.server.iso15118.dto.SignedUpdateFirmwareRequest;
 import eu.chargetime.ocpp.feature.Feature;
 import eu.chargetime.ocpp.feature.ProfileFeature;
@@ -35,7 +35,7 @@ public class ISO15118Profile implements Profile {
             this.features.add(new com.omb.ocpp.server.iso15118.spec_2_0_1.CertificateSignedFeature(this));
         }
 
-        this.features.add(new SignCertificateFeature(this));
+        this.features.add(new SignCertificateFeature(this, SignCertificateFeatureOperator.valueOf(config.getString(ConfigKey.SIGN_CERTIFICATE_FEATURE_OPERATOR))));
         this.features.add(new TriggerMessageFeature(this));
         this.features.add(new SignedUpdateFirmwareFeature(this));
         this.eventHandler = eventHandler;
@@ -52,8 +52,8 @@ public class ISO15118Profile implements Profile {
             return this.eventHandler.handleAuthorizeRequest(uuid, (AuthorizeRequest) request);
         } else if (request instanceof Get15118EVCertificateRequest) {
             return this.eventHandler.handleGetCertificateRequest(uuid, (Get15118EVCertificateRequest) request);
-        } else if (request instanceof SignCertificateRequest) {
-            return this.eventHandler.handleSignCertificateRequest(uuid, (SignCertificateRequest) request);
+        } else if (request instanceof SignCertificateRequestSupport) {
+            return this.eventHandler.handleSignCertificateRequest(uuid, (SignCertificateRequestSupport) request);
         } else if (request instanceof SignedUpdateFirmwareRequest) {
             return this.eventHandler.handleSignedUpdateFirmwareRequest(uuid, (SignedUpdateFirmwareRequest) request);
         } else {

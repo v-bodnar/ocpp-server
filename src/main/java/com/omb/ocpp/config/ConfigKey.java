@@ -1,12 +1,14 @@
 package com.omb.ocpp.config;
 
 import com.omb.ocpp.server.iso15118.OcppCertificateSignedSpecification;
+import com.omb.ocpp.server.iso15118.SignCertificateFeatureOperator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 
 public enum ConfigKey {
+
     GUI_MODE("application.gui.mode",
             "Indicates that application should be started without GUI, possible values:  'true/false', default: %s",
             true),
@@ -60,10 +62,13 @@ public enum ConfigKey {
 
     CERTIFICATE_SIGNED_SPEC_VERSION(
             "certificate.signed.spec.version",
-            "Version of ocpp signed certificate. Current values are: OCPP_2_0, OCPP_2_0_1",
-            OcppCertificateSignedSpecification.OCPP_2_0.name())
+            String.format("Version of ocpp signed certificate. Available values are: %s. Default value is: %s", Arrays.toString(OcppCertificateSignedSpecification.values()), OcppCertificateSignedSpecification.OCPP_2_0),
+            OcppCertificateSignedSpecification.OCPP_2_0.name()),
 
-    ;
+    SIGN_CERTIFICATE_FEATURE_OPERATOR(
+            "sign.certificate.feature.operator",
+            String.format("Choose between signing operators. Available values are: %s. Default value is: %s", Arrays.toString(SignCertificateFeatureOperator.values()), SignCertificateFeatureOperator.IONITY),
+            SignCertificateFeatureOperator.IONITY);
 
     private String key;
     private String comment;

@@ -1,6 +1,6 @@
-package com.omb.ocpp.server.iso15118.dto.spec_2_0;
+package com.omb.ocpp.server.iso15118.dto.certificate.signing.spec_2_0;
 
-import com.omb.ocpp.server.iso15118.dto.CertificateSigningUseEnumType;
+import com.omb.ocpp.server.iso15118.dto.certificate.signing.CertificateSigningUseEnumTypeSupport;
 import eu.chargetime.ocpp.model.Request;
 import com.google.gson.annotations.SerializedName;
 
@@ -17,7 +17,7 @@ public class CertificateSignedRequest implements Request {
     private List<String> certs = new ArrayList<>();
 
     @SerializedName("typeOfCertificate")
-    private CertificateSigningUseEnumType certificateType;
+    private CertificateSigningUseEnumTypeSupport certificateType;
 
     public void setCerts(List<String> certs) {
         this.certs = certs;
@@ -27,11 +27,11 @@ public class CertificateSignedRequest implements Request {
         return unmodifiableList(certs);
     }
 
-    public void setCertificateType(CertificateSigningUseEnumType certificateType) {
+    public void setCertificateType(CertificateSigningUseEnumTypeSupport certificateType) {
         this.certificateType = certificateType;
     }
 
-    public Optional<CertificateSigningUseEnumType> getCertificateType() {
+    public Optional<CertificateSigningUseEnumTypeSupport> getCertificateType() {
         return Optional.ofNullable(certificateType);
     }
 

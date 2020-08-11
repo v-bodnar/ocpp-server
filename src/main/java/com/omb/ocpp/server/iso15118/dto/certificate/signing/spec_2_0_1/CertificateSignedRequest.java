@@ -1,7 +1,7 @@
-package com.omb.ocpp.server.iso15118.dto.spec_2_0_1;
+package com.omb.ocpp.server.iso15118.dto.certificate.signing.spec_2_0_1;
 
 import com.google.gson.annotations.SerializedName;
-import com.omb.ocpp.server.iso15118.dto.CertificateSigningUseEnumType;
+import com.omb.ocpp.server.iso15118.dto.certificate.signing.CertificateSigningUseEnumTypeSupport;
 import eu.chargetime.ocpp.model.Request;
 
 import java.util.Objects;
@@ -12,7 +12,7 @@ public class CertificateSignedRequest implements Request {
     private String certificateChain;
 
     @SerializedName("certificateType")
-    private CertificateSigningUseEnumType certificateType;
+    private CertificateSigningUseEnumTypeSupport certificateType;
 
     public String getCertificateChain() {
         return certificateChain;
@@ -22,11 +22,11 @@ public class CertificateSignedRequest implements Request {
         this.certificateChain = certificateChain;
     }
 
-    public CertificateSigningUseEnumType getCertificateType() {
+    public CertificateSigningUseEnumTypeSupport getCertificateType() {
         return certificateType;
     }
 
-    public void setCertificateType(CertificateSigningUseEnumType certificateType) {
+    public void setCertificateType(CertificateSigningUseEnumTypeSupport certificateType) {
         this.certificateType = certificateType;
     }
 

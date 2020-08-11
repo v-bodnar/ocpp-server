@@ -1,16 +1,19 @@
-package com.omb.ocpp.server.iso15118.dto;
+package com.omb.ocpp.server.iso15118.dto.certificate.signing.elam;
 
 import com.google.gson.annotations.SerializedName;
-import eu.chargetime.ocpp.model.Request;
+import com.omb.ocpp.server.iso15118.dto.certificate.signing.SignCertificateRequestSupport;
 
 import java.util.Objects;
 
-public class SignCertificateRequest implements Request {
+public class SignCertificateRequest implements SignCertificateRequestSupport {
+
     @SerializedName("csr")
     private String csr;
+
     @SerializedName("typeOfCertificate")
     private CertificateSigningUseEnumType typeOfCertificate;
 
+    @Override
     public String getCsr() {
         return csr;
     }
@@ -19,6 +22,7 @@ public class SignCertificateRequest implements Request {
         this.csr = csr;
     }
 
+    @Override
     public CertificateSigningUseEnumType getTypeOfCertificate() {
         return typeOfCertificate;
     }

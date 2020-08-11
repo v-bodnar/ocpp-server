@@ -5,7 +5,7 @@ import com.omb.ocpp.server.iso15118.dto.AuthorizeRequest;
 import com.omb.ocpp.server.iso15118.dto.AuthorizeResponse;
 import com.omb.ocpp.server.iso15118.dto.Get15118EVCertificateRequest;
 import com.omb.ocpp.server.iso15118.dto.Get15118EVCertificateResponse;
-import com.omb.ocpp.server.iso15118.dto.SignCertificateRequest;
+import com.omb.ocpp.server.iso15118.dto.certificate.signing.SignCertificateRequestSupport;
 import com.omb.ocpp.server.iso15118.dto.SignCertificateResponse;
 import com.omb.ocpp.server.iso15118.dto.SignedUpdateFirmwareRequest;
 import com.omb.ocpp.server.iso15118.dto.SignedUpdateFirmwareResponse;
@@ -40,7 +40,7 @@ public class ISO15118EventHandler {
         return groovyService.getConfirmation(uuid, request);
     }
 
-    public SignCertificateResponse handleSignCertificateRequest(UUID uuid, SignCertificateRequest request) {
+    public SignCertificateResponse handleSignCertificateRequest(UUID uuid, SignCertificateRequestSupport request) {
         LOGGER.debug(RECEIVED_REQUEST, request.getClass().getSimpleName(), jsonCommunicator.packPayload(request));
         return groovyService.getConfirmation(uuid, request);
     }
