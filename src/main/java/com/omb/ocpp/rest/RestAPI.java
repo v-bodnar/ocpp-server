@@ -8,6 +8,7 @@ import com.omb.ocpp.security.certificate.api.KeystoreApi;
 import com.omb.ocpp.security.certificate.config.KeystoreCertificateConfig;
 import com.omb.ocpp.security.certificate.service.TrustStoreService;
 import com.omb.ocpp.server.OcppServerService;
+import com.omb.ocpp.server.iso15118.dto.InstallCertificateRequest;
 import eu.chargetime.ocpp.NotConnectedException;
 import eu.chargetime.ocpp.OccurenceConstraintException;
 import eu.chargetime.ocpp.UnsupportedFeatureException;
@@ -116,7 +117,6 @@ public class RestAPI {
     public Response sendRemoteStopTransactionRequest(RemoteStopTransactionRequest remoteStopTransactionRequest) {
         return sendRequest(remoteStopTransactionRequest);
     }
-
 
     @POST
     @Path("send-unlock-connector-request")
@@ -231,6 +231,12 @@ public class RestAPI {
     @Path("send-all-clear-charging-profile-request")
     public Response sendToAllClearChargingProfileRequest(ClearChargingProfileRequest clearChargingProfileRequest) {
         return sendRequestToAll(clearChargingProfileRequest);
+    }
+
+    @POST
+    @Path("send-all-install-certificate-request")
+    public Response sendToAllInstallCertificateRequest(InstallCertificateRequest installCertificateRequest) {
+        return sendRequestToAll(installCertificateRequest);
     }
 
     @POST

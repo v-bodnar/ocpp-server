@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.omb.ocpp.server.iso15118.dto.FirmwareType;
+import com.omb.ocpp.server.iso15118.dto.InstallCertificateRequest;
 import com.omb.ocpp.server.iso15118.dto.MessageTrigger;
 import com.omb.ocpp.server.iso15118.dto.SignedUpdateFirmwareRequest;
 import eu.chargetime.ocpp.JSONCommunicator;
@@ -123,6 +124,8 @@ public class StubRequestsFactory {
                 return getIso15118TriggerMessageRequest();
             } else if (requestClass.equals(SignedUpdateFirmwareRequest.class)) {
                 return getSignedUpdateFirmwareRequest();
+            } else if (requestClass.equals(InstallCertificateRequest.class)) {
+                return getInstallCertificateRequest();
             } else {
                 return NOT_SUPPORTED;
             }
@@ -333,6 +336,13 @@ public class StubRequestsFactory {
         triggerMessageRequest.setRequestedMessage(MessageTrigger.SIGN_V2G_CERTIFICATE);
 
         return (String) jsonCommunicator.packPayload(triggerMessageRequest);
+    }
+
+    private static String getInstallCertificateRequest() {
+        InstallCertificateRequest installCertificateRequest = new InstallCertificateRequest();
+        installCertificateRequest.setCertificate("certificate");
+        installCertificateRequest.setCertificateType("ROOT_CA");
+        return (String) jsonCommunicator.packPayload(installCertificateRequest);
     }
 
     public static <T extends Request> Optional<T> toRequest(String request, Class<T> requestClass) {

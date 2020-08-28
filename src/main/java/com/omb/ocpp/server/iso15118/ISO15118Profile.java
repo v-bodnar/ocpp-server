@@ -38,6 +38,7 @@ public class ISO15118Profile implements Profile {
         this.features.add(new SignCertificateFeature(this, SignCertificateFeatureOperator.valueOf(config.getString(ConfigKey.SIGN_CERTIFICATE_FEATURE_OPERATOR))));
         this.features.add(new TriggerMessageFeature(this));
         this.features.add(new SignedUpdateFirmwareFeature(this));
+        this.features.add(new InstallCertificateFeature(this));
         this.eventHandler = eventHandler;
     }
 
