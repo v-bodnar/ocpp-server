@@ -8,6 +8,6 @@ public enum CertificateSigningUseEnumType implements CertificateSigningUseEnumTy
     @SerializedName("ChargingStationCertificate")
     CHARGING_STATION_CERTIFICATE,
 
-    @SerializedName("V_2_G_CERTIFICATE")
+    @SerializedName("V2GCERTIFICATE")
     V2G_CERTIFICATE;
 }
