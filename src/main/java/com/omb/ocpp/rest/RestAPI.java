@@ -64,10 +64,11 @@ public class RestAPI {
     private final TrustStoreService trustStoreService = Application.APPLICATION.getService(TrustStoreService.class);
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
+
     @POST
     @Path("send-reset-request")
-    public Response sendResetRequest(ResetRequest resetRequest) {
-        return sendRequest(resetRequest);
+    public Response sendResetRequest(@QueryParam("userName") String userName, ResetRequest resetRequest) {
+        return sendRequest(resetRequest, userName);
     }
 
     @POST
@@ -382,6 +383,19 @@ public class RestAPI {
         try {
             return Response.ok().entity(ocppServerService.send(request).toCompletableFuture().get()).build();
         } catch (NotConnectedException | OccurenceConstraintException | UnsupportedFeatureException | InterruptedException | ExecutionException e) {
+            LOGGER.error("Could not send request", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), e.getMessage()).build();
+        }
+    }
+
+    private Response sendRequest(Request request, String username) {
+        try {
+            if (username == null) {
+                return sendRequest(request);
+            } else {
+                return Response.ok().entity(ocppServerService.sendToClient(request, username).toCompletableFuture().get()).build();
+            }
+        } catch (InterruptedException | ExecutionException e) {
             LOGGER.error("Could not send request", e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), e.getMessage()).build();
         }

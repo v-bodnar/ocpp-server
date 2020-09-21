@@ -180,10 +180,28 @@ public class OcppServerService {
         }
     }
 
-    public CompletionStage<Confirmation> send(UUID uuid, Request request) throws NotConnectedException,
-            OccurenceConstraintException,
-            UnsupportedFeatureException {
-        return server.send(uuid, request);
+    public CompletionStage<Confirmation> sendToClient(Request request, String username) {
+
+        Optional<UUID> sessionUUID = sessionList.entrySet().stream()
+                .filter(entry -> entry.getValue().getIdentifier().equals(username))
+                .map(Map.Entry::getKey)
+                .findAny();
+
+        try {
+            LOGGER.debug("Sending message: {} to {}", toJson(request), username);
+            return server.send(sessionUUID.orElseThrow(() -> new IllegalArgumentException(String.format("Could not find " +
+                    "client by username: %s", username))), request)
+                    .whenComplete((confirmation, throwable) -> {
+                        if (throwable == null) {
+                            LOGGER.debug("Client responded with: {}", ToStringBuilder.reflectionToString(confirmation, ToStringStyle.SHORT_PREFIX_STYLE));
+                        } else {
+                            LOGGER.error("Error parsing response from client", throwable);
+                        }
+                    });
+        } catch (OccurenceConstraintException | UnsupportedFeatureException | NotConnectedException e) {
+            LOGGER.error(String.format("Could not send message: %s to %s", toJson(request), username), e);
+            return CompletableFuture.failedFuture(e);
+        }
     }
 
     public Map<UUID, SessionInformation> getSessionList() {
