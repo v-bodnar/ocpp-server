@@ -73,80 +73,92 @@ public class RestAPI {
 
     @POST
     @Path("send-get-diagnostics")
-    public Response sendGetDiagnostics(GetDiagnosticsRequest getDiagnosticsRequest) {
+    public Response sendGetDiagnostics(@QueryParam("userName") String userName, GetDiagnosticsRequest getDiagnosticsRequest) {
         return sendRequest(getDiagnosticsRequest);
     }
 
     @POST
     @Path("send-change-availability-request")
-    public Response sendChangeAvailabilityRequest(ChangeAvailabilityRequest changeAvailabilityRequest) {
+    public Response sendChangeAvailabilityRequest(@QueryParam("userName") String userName, ChangeAvailabilityRequest changeAvailabilityRequest) {
         return sendRequest(changeAvailabilityRequest);
     }
 
     @POST
     @Path("send-change-configuration-request")
-    public Response sendChangeConfigurationRequest(ChangeConfigurationRequest changeConfigurationRequest) {
+    public Response sendChangeConfigurationRequest(@QueryParam("userName") String userName, ChangeConfigurationRequest changeConfigurationRequest) {
         return sendRequest(changeConfigurationRequest);
     }
 
     @POST
     @Path("send-clear-cache-request")
-    public Response sendClearCacheRequest(ClearCacheRequest clearCacheRequest) {
+    public Response sendClearCacheRequest(@QueryParam("userName") String userName, ClearCacheRequest clearCacheRequest) {
         return sendRequest(clearCacheRequest);
     }
 
     @POST
     @Path("send-data-transfer-request")
-    public Response sendDataTransferRequest(DataTransferRequest dataTransferRequest) {
+    public Response sendDataTransferRequest(@QueryParam("userName") String userName, DataTransferRequest dataTransferRequest) {
         return sendRequest(dataTransferRequest);
     }
 
     @POST
     @Path("send-get-configuration-request")
-    public Response sendGetConfigurationRequest(GetConfigurationRequest getConfigurationRequest) {
+    public Response sendGetConfigurationRequest(@QueryParam("userName") String userName, GetConfigurationRequest getConfigurationRequest) {
         return sendRequest(getConfigurationRequest);
     }
 
     @POST
     @Path("send-remote-start-transaction-request")
-    public Response sendRemoteStartTransactionRequest(RemoteStartTransactionRequest remoteStartTransactionRequest) {
+    public Response sendRemoteStartTransactionRequest(@QueryParam("userName") String userName, 
+                                                      RemoteStartTransactionRequest remoteStartTransactionRequest) {
         return sendRequest(remoteStartTransactionRequest);
     }
 
     @POST
     @Path("send-remote-stop-transaction-request")
-    public Response sendRemoteStopTransactionRequest(RemoteStopTransactionRequest remoteStopTransactionRequest) {
+    public Response sendRemoteStopTransactionRequest(@QueryParam("userName") String userName, 
+                                                     RemoteStopTransactionRequest remoteStopTransactionRequest) {
         return sendRequest(remoteStopTransactionRequest);
     }
 
     @POST
     @Path("send-unlock-connector-request")
-    public Response sendUnlockConnectorRequest(UnlockConnectorRequest unlockConnectorRequest) {
+    public Response sendUnlockConnectorRequest(@QueryParam("userName") String userName, UnlockConnectorRequest unlockConnectorRequest) {
         return sendRequest(unlockConnectorRequest);
     }
 
     @POST
     @Path("send-diagnostics-status-notification-request")
-    public Response sendDiagnosticsStatusNotificationRequest(DiagnosticsStatusNotificationRequest diagnosticsStatusNotificationRequest) {
+    public Response sendDiagnosticsStatusNotificationRequest(@QueryParam("userName") String userName, 
+                                                             DiagnosticsStatusNotificationRequest diagnosticsStatusNotificationRequest) {
         return sendRequest(diagnosticsStatusNotificationRequest);
     }
 
     @POST
     @Path("send-firmware-status-notification-request")
-    public Response sendFirmwareStatusNotificationRequest(FirmwareStatusNotificationRequest firmwareStatusNotificationRequest) {
+    public Response sendFirmwareStatusNotificationRequest(@QueryParam("userName") String userName, 
+                                                          FirmwareStatusNotificationRequest firmwareStatusNotificationRequest) {
         return sendRequest(firmwareStatusNotificationRequest);
     }
 
     @POST
     @Path("send-set-charging-profile-request")
-    public Response sendSetChargingProfileRequest(SetChargingProfileRequest setChargingProfileRequest) {
+    public Response sendSetChargingProfileRequest(@QueryParam("userName") String userName, 
+                                                  SetChargingProfileRequest setChargingProfileRequest) {
         return sendRequest(setChargingProfileRequest);
     }
 
     @POST
     @Path("send-clear-charging-profile-request")
-    public Response sendClearChargingProfileRequest(ClearChargingProfileRequest clearChargingProfileRequest) {
+    public Response sendClearChargingProfileRequest(@QueryParam("userName") String userName, 
+                                                    ClearChargingProfileRequest clearChargingProfileRequest) {
         return sendRequest(clearChargingProfileRequest);
+    }
+
+    @POST
+    @Path("send-install-certificate-request")
+    public Response sendInstallCertificateRequest(@QueryParam("userName") String userName, InstallCertificateRequest installCertificateRequest) {
+        return sendRequest(installCertificateRequest, userName);
     }
 
     @POST
