@@ -180,10 +180,16 @@ public class OcppServerService {
         }
     }
 
-    public CompletionStage<Confirmation> sendToClient(Request request, String username) {
-
+    public CompletionStage<Confirmation> send(UUID uuid, Request request) throws NotConnectedException,
+            OccurenceConstraintException,
+            UnsupportedFeatureException {
+        return server.send(uuid, request);
+    }
+    
+    public CompletionStage<Confirmation> sendToClient(Request request, String username) { 
+    			
         Optional<UUID> sessionUUID = sessionList.entrySet().stream()
-                .filter(entry -> entry.getValue().getIdentifier().equals(username))
+                .filter(entry -> entry.getValue().getIdentifier().equals("/" + username))
                 .map(Map.Entry::getKey)
                 .findAny();
 
