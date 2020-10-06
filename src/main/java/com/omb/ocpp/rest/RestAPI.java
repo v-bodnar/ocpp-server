@@ -28,6 +28,7 @@ import eu.chargetime.ocpp.model.firmware.FirmwareStatusNotificationRequest;
 import eu.chargetime.ocpp.model.firmware.GetDiagnosticsRequest;
 import eu.chargetime.ocpp.model.smartcharging.ClearChargingProfileRequest;
 import eu.chargetime.ocpp.model.smartcharging.SetChargingProfileRequest;
+import eu.chargetime.ocpp.model.remotetrigger.TriggerMessageRequest;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
@@ -162,6 +163,13 @@ public class RestAPI {
     }
 
     @POST
+    @Path("send-trigger-message-request")
+    public Response sendTriggerMessageRequest(@QueryParam("userName") String userName, 
+                                              TriggerMessageRequest triggerMessageRequest) {
+        return sendRequest(triggerMessageRequest);
+    }
+
+    @POST
     @Path("send-all-reset-request")
     public Response sendAllResetRequest(ResetRequest resetRequest) {
         return sendRequestToAll(resetRequest);
@@ -244,6 +252,12 @@ public class RestAPI {
     @Path("send-all-clear-charging-profile-request")
     public Response sendToAllClearChargingProfileRequest(ClearChargingProfileRequest clearChargingProfileRequest) {
         return sendRequestToAll(clearChargingProfileRequest);
+    }
+
+    @POST
+    @Path("send-all-trigger-message-request")
+    public Response sendToAllTriggerMessageRequest(TriggerMessageRequest triggerMessageRequest) {
+        return sendRequestToAll(triggerMessageRequest);
     }
 
     @POST
