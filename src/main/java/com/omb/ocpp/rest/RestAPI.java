@@ -75,85 +75,85 @@ public class RestAPI {
     @POST
     @Path("send-get-diagnostics")
     public Response sendGetDiagnostics(@QueryParam("userName") String userName, GetDiagnosticsRequest getDiagnosticsRequest) {
-        return sendRequest(getDiagnosticsRequest);
+        return sendRequest(getDiagnosticsRequest, userName);
     }
 
     @POST
     @Path("send-change-availability-request")
     public Response sendChangeAvailabilityRequest(@QueryParam("userName") String userName, ChangeAvailabilityRequest changeAvailabilityRequest) {
-        return sendRequest(changeAvailabilityRequest);
+        return sendRequest(changeAvailabilityRequest, userName);
     }
 
     @POST
     @Path("send-change-configuration-request")
     public Response sendChangeConfigurationRequest(@QueryParam("userName") String userName, ChangeConfigurationRequest changeConfigurationRequest) {
-        return sendRequest(changeConfigurationRequest);
+        return sendRequest(changeConfigurationRequest, userName);
     }
 
     @POST
     @Path("send-clear-cache-request")
     public Response sendClearCacheRequest(@QueryParam("userName") String userName, ClearCacheRequest clearCacheRequest) {
-        return sendRequest(clearCacheRequest);
+        return sendRequest(clearCacheRequest, userName);
     }
 
     @POST
     @Path("send-data-transfer-request")
     public Response sendDataTransferRequest(@QueryParam("userName") String userName, DataTransferRequest dataTransferRequest) {
-        return sendRequest(dataTransferRequest);
+        return sendRequest(dataTransferRequest, userName);
     }
 
     @POST
     @Path("send-get-configuration-request")
     public Response sendGetConfigurationRequest(@QueryParam("userName") String userName, GetConfigurationRequest getConfigurationRequest) {
-        return sendRequest(getConfigurationRequest);
+        return sendRequest(getConfigurationRequest, userName);
     }
 
     @POST
     @Path("send-remote-start-transaction-request")
     public Response sendRemoteStartTransactionRequest(@QueryParam("userName") String userName, 
                                                       RemoteStartTransactionRequest remoteStartTransactionRequest) {
-        return sendRequest(remoteStartTransactionRequest);
+        return sendRequest(remoteStartTransactionRequest, userName);
     }
 
     @POST
     @Path("send-remote-stop-transaction-request")
     public Response sendRemoteStopTransactionRequest(@QueryParam("userName") String userName, 
                                                      RemoteStopTransactionRequest remoteStopTransactionRequest) {
-        return sendRequest(remoteStopTransactionRequest);
+        return sendRequest(remoteStopTransactionRequest, userName);
     }
 
     @POST
     @Path("send-unlock-connector-request")
     public Response sendUnlockConnectorRequest(@QueryParam("userName") String userName, UnlockConnectorRequest unlockConnectorRequest) {
-        return sendRequest(unlockConnectorRequest);
+        return sendRequest(unlockConnectorRequest, userName);
     }
 
     @POST
     @Path("send-diagnostics-status-notification-request")
     public Response sendDiagnosticsStatusNotificationRequest(@QueryParam("userName") String userName, 
                                                              DiagnosticsStatusNotificationRequest diagnosticsStatusNotificationRequest) {
-        return sendRequest(diagnosticsStatusNotificationRequest);
+        return sendRequest(diagnosticsStatusNotificationRequest, userName);
     }
 
     @POST
     @Path("send-firmware-status-notification-request")
     public Response sendFirmwareStatusNotificationRequest(@QueryParam("userName") String userName, 
                                                           FirmwareStatusNotificationRequest firmwareStatusNotificationRequest) {
-        return sendRequest(firmwareStatusNotificationRequest);
+        return sendRequest(firmwareStatusNotificationRequest, userName);
     }
 
     @POST
     @Path("send-set-charging-profile-request")
     public Response sendSetChargingProfileRequest(@QueryParam("userName") String userName, 
                                                   SetChargingProfileRequest setChargingProfileRequest) {
-        return sendRequest(setChargingProfileRequest);
+        return sendRequest(setChargingProfileRequest, userName);
     }
 
     @POST
     @Path("send-clear-charging-profile-request")
     public Response sendClearChargingProfileRequest(@QueryParam("userName") String userName, 
                                                     ClearChargingProfileRequest clearChargingProfileRequest) {
-        return sendRequest(clearChargingProfileRequest);
+        return sendRequest(clearChargingProfileRequest, userName);
     }
 
     @POST
@@ -166,7 +166,7 @@ public class RestAPI {
     @Path("send-trigger-message-request")
     public Response sendTriggerMessageRequest(@QueryParam("userName") String userName, 
                                               TriggerMessageRequest triggerMessageRequest) {
-        return sendRequest(triggerMessageRequest);
+        return sendRequest(triggerMessageRequest, userName);
     }
 
     @POST
