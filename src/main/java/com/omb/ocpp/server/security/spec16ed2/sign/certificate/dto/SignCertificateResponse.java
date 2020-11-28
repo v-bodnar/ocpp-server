@@ -1,20 +1,19 @@
-package com.omb.ocpp.server.iso15118.dto;
+package com.omb.ocpp.server.security.spec16ed2.sign.certificate.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 import eu.chargetime.ocpp.model.Confirmation;
-
 import java.util.Objects;
 
 public class SignCertificateResponse implements Confirmation {
-    @SerializedName("status")
-    private Status status;
 
-    public Status getStatus() {
+    @SerializedName("status")
+    private CertificateResponseStatus status;
+
+    public CertificateResponseStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(CertificateResponseStatus status) {
         this.status = status;
     }
 
@@ -40,15 +39,6 @@ public class SignCertificateResponse implements Confirmation {
         return "SignCertificateResponse{" +
                 "status=" + status +
                 '}';
-    }
-
-    public enum Status {
-        @SerializedName("Accepted")
-        @JsonProperty("Accepted")
-        ACCEPTED,
-        @SerializedName("Rejected")
-        @JsonProperty("Rejected")
-        REJECTED;
     }
 
     @Override

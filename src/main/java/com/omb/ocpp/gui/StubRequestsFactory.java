@@ -9,6 +9,8 @@ import com.omb.ocpp.server.iso15118.dto.FirmwareType;
 import com.omb.ocpp.server.iso15118.dto.InstallCertificateRequest;
 import com.omb.ocpp.server.iso15118.dto.MessageTrigger;
 import com.omb.ocpp.server.iso15118.dto.SignedUpdateFirmwareRequest;
+import com.omb.ocpp.server.security.spec16ed2.extended.trigger.message.dto.ExtendedTriggerMessage;
+import com.omb.ocpp.server.security.spec16ed2.extended.trigger.message.dto.ExtendedTriggerMessageRequest;
 import eu.chargetime.ocpp.JSONCommunicator;
 import eu.chargetime.ocpp.PropertyConstraintException;
 import eu.chargetime.ocpp.model.Request;
@@ -126,6 +128,8 @@ public class StubRequestsFactory {
                 return getSignedUpdateFirmwareRequest();
             } else if (requestClass.equals(InstallCertificateRequest.class)) {
                 return getInstallCertificateRequest();
+            } else if (requestClass.equals(ExtendedTriggerMessageRequest.class)) {
+                return getExtendedTriggerMessageRequest();
             } else {
                 return NOT_SUPPORTED;
             }
@@ -286,6 +290,13 @@ public class StubRequestsFactory {
         triggerMessageRequest.setConnectorId(1);
         triggerMessageRequest.setRequestedMessage(TriggerMessageRequestType.Heartbeat);
         return objectMapper.writeValueAsString(triggerMessageRequest);
+    }
+
+    private static String getExtendedTriggerMessageRequest() throws JsonProcessingException {
+        ExtendedTriggerMessageRequest extendedTriggerMessageRequest = new ExtendedTriggerMessageRequest();
+        extendedTriggerMessageRequest.setConnectorId(1);
+        extendedTriggerMessageRequest.setMessageTriggerType(ExtendedTriggerMessage.BOOT_NOTIFICATION.SIGN_CHARGE_POINT_CERTIFICATE);
+        return objectMapper.writeValueAsString(extendedTriggerMessageRequest);
     }
 
     private static String getSetChargingProfileRequest() throws JsonProcessingException {

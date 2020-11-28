@@ -7,6 +7,7 @@ import com.omb.ocpp.server.OcppServerService;
 import com.omb.ocpp.server.SessionsListener;
 import com.omb.ocpp.server.iso15118.dto.InstallCertificateRequest;
 import com.omb.ocpp.server.iso15118.dto.SignedUpdateFirmwareRequest;
+import com.omb.ocpp.server.security.spec16ed2.extended.trigger.message.dto.ExtendedTriggerMessageRequest;
 import eu.chargetime.ocpp.model.Request;
 import eu.chargetime.ocpp.model.SessionInformation;
 import eu.chargetime.ocpp.model.core.ChangeAvailabilityRequest;
@@ -198,6 +199,11 @@ public class CommunicatorTab {
             messages.add(SignedUpdateFirmwareRequest.class);
             messages.add(InstallCertificateRequest.class);
         }
+
+        if(featuresList.contains(Feature.SECURITY_SPEC_16.getKey())) {
+            messages.add(ExtendedTriggerMessageRequest.class);
+        }
+
         return messages;
     }
 

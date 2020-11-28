@@ -1,20 +1,19 @@
-package com.omb.ocpp.server.iso15118.dto;
+package com.omb.ocpp.server.security.spec16ed2.extended.trigger.message.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 import eu.chargetime.ocpp.model.Confirmation;
-
 import java.util.Objects;
 
-public class SignCertificateResponse implements Confirmation {
-    @SerializedName("status")
-    private Status status;
+public class ExtendedTriggerMessageResponse implements Confirmation {
 
-    public Status getStatus() {
+    @SerializedName("status")
+    private ExtendedTriggerMessageStatus status;
+
+    public ExtendedTriggerMessageStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(ExtendedTriggerMessageStatus status) {
         this.status = status;
     }
 
@@ -26,10 +25,10 @@ public class SignCertificateResponse implements Confirmation {
         if (object == null || getClass() != object.getClass()) {
             return false;
         }
-        SignCertificateResponse that = (SignCertificateResponse) object;
+        ExtendedTriggerMessageResponse that = (ExtendedTriggerMessageResponse) object;
         return status == that.status;
     }
-
+    
     @Override
     public int hashCode() {
         return Objects.hash(status);
@@ -37,18 +36,9 @@ public class SignCertificateResponse implements Confirmation {
 
     @Override
     public String toString() {
-        return "SignCertificateResponse{" +
+        return "ExtendedTriggerMessageResponse{" +
                 "status=" + status +
                 '}';
-    }
-
-    public enum Status {
-        @SerializedName("Accepted")
-        @JsonProperty("Accepted")
-        ACCEPTED,
-        @SerializedName("Rejected")
-        @JsonProperty("Rejected")
-        REJECTED;
     }
 
     @Override

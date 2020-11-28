@@ -10,6 +10,7 @@ import com.omb.ocpp.server.OcppServerService;
 import com.omb.ocpp.server.handler.CoreEventHandler;
 import com.omb.ocpp.server.handler.FirmwareManagementEventHandler;
 import com.omb.ocpp.server.handler.ISO15118EventHandler;
+import com.omb.ocpp.server.security.spec16ed2.handler.SecuritySpec16EventHandler;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
 import javax.inject.Singleton;
@@ -26,5 +27,6 @@ public class ApplicationBinder extends AbstractBinder {
         bind(ISO15118EventHandler.class).to(ISO15118EventHandler.class).in(Singleton.class);
         bind(KeystoreApiImpl.class).to(KeystoreApi.class).in(Singleton.class);
         bind(TrustStoreService.class).to(TrustStoreService.class).in(Singleton.class);
+        bind(SecuritySpec16EventHandler.class).to(SecuritySpec16EventHandler.class).in(Singleton.class);
     }
 }

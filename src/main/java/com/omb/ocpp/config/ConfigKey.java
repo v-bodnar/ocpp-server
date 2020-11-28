@@ -26,8 +26,7 @@ public enum ConfigKey {
 
     OCPP_FEATURES_PROFILE_LIST("ocpp.features.profile.list", "List of features supported by server, " +
             "default:Core,FirmwareManagement,RemoteTrigger,LocalAuthList",
-            new ArrayList<>(Arrays.asList("Core", "FirmwareManagement", "RemoteTrigger", "LocalAuthList", "ISO_15118",
-                    "SmartCharging"))),
+            new ArrayList<>(Arrays.asList("Core", "FirmwareManagement", "RemoteTrigger", "LocalAuthList", "ISO15118", "SmartCharging", "SecuritySpec16"))),
 
     REST_API_PORT("rest.api.port", "port on which REST server will accept connections, default:%s, works in" +
             " combination with 'application.gui.mode:false'",

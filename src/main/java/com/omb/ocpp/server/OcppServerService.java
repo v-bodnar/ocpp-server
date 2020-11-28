@@ -7,6 +7,8 @@ import com.omb.ocpp.server.handler.CoreEventHandler;
 import com.omb.ocpp.server.handler.FirmwareManagementEventHandler;
 import com.omb.ocpp.server.handler.ISO15118EventHandler;
 import com.omb.ocpp.server.iso15118.ISO15118Profile;
+import com.omb.ocpp.server.security.spec16ed2.profile.SecuritySpec16Profile;
+import com.omb.ocpp.server.security.spec16ed2.handler.SecuritySpec16EventHandler;
 import eu.chargetime.ocpp.JSONConfiguration;
 import eu.chargetime.ocpp.JSONServer;
 import eu.chargetime.ocpp.NotConnectedException;
@@ -30,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -54,12 +57,18 @@ public class OcppServerService {
     private Profile localAuthListProfile;
     private Profile iso15118Profile;
     private Profile smartChargingProfile;
+    private Profile securitySpec16Profile;
     private SslContextConfig sslContextConfig;
     private Config config;
 
     @Inject
-    public OcppServerService(FirmwareManagementEventHandler firmwareManagementEventHandler,
-                             CoreEventHandler coreEventHandler, ISO15118EventHandler iso15118EventHandler, Config config) {
+    public OcppServerService(
+            FirmwareManagementEventHandler firmwareManagementEventHandler,
+            CoreEventHandler coreEventHandler,
+            ISO15118EventHandler iso15118EventHandler,
+            SecuritySpec16EventHandler securitySpec16EventHandler,
+            Config config) {
+
         this.config = config;
         this.coreProfile = new ServerCoreProfile(coreEventHandler);
         this.firmwareProfile = new ServerFirmwareManagementProfile(firmwareManagementEventHandler);
@@ -67,6 +76,7 @@ public class OcppServerService {
         this.localAuthListProfile = new ServerLocalAuthListProfile();
         this.smartChargingProfile = new ServerSmartChargingProfile();
         this.iso15118Profile = new ISO15118Profile(iso15118EventHandler, config);
+        this.securitySpec16Profile = new SecuritySpec16Profile(securitySpec16EventHandler);
     }
 
     public void start(String ip, int port) {
@@ -87,17 +97,25 @@ public class OcppServerService {
         if (featuresList.contains(Feature.FIRMWARE_MANAGEMENT.getKey())) {
             server.addFeatureProfile(firmwareProfile);
         }
+
         if (featuresList.contains(Feature.REMOTE_TRIGGER.getKey())) {
             server.addFeatureProfile(remoteTriggerProfile);
         }
+
         if (featuresList.contains(Feature.LOCAL_AUTH_LIST.getKey())) {
             server.addFeatureProfile(localAuthListProfile);
         }
+
         if (featuresList.contains(Feature.SMART_CHARGING.getKey())) {
             server.addFeatureProfile(smartChargingProfile);
         }
+
         if (featuresList.contains(Feature.ISO_15118.getKey())) {
             server.addFeatureProfile(iso15118Profile);
+        }
+
+        if (featuresList.contains(Feature.SECURITY_SPEC_16.getKey())) {
+            server.addFeatureProfile(securitySpec16Profile);
         }
 
         server.open(ip, port, new ServerEvents() {
@@ -185,9 +203,9 @@ public class OcppServerService {
             UnsupportedFeatureException {
         return server.send(uuid, request);
     }
-    
-    public CompletionStage<Confirmation> sendToClient(Request request, String username) { 
-    			
+
+    public CompletionStage<Confirmation> sendToClient(Request request, String username) {
+
         Optional<UUID> sessionUUID = sessionList.entrySet().stream()
                 .filter(entry -> entry.getValue().getIdentifier().equals("/" + username))
                 .map(Map.Entry::getKey)
