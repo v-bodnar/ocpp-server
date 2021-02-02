@@ -11,5 +11,11 @@ public enum UpdateFirmwareStatus {
     REJECTED,
 
     @SerializedName("AcceptedCanceled")
-    ACCEPTED_CANCELED
+    ACCEPTED_CANCELED,
+
+    @SerializedName("InvalidCertificate")
+    INVALID_CERTIFICATE,
+
+    @SerializedName("RevokedCertificate")
+    REVOKED_CERTIFICATE
 }
