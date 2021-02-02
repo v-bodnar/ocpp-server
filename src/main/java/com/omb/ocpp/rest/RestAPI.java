@@ -9,6 +9,7 @@ import com.omb.ocpp.security.certificate.config.KeystoreCertificateConfig;
 import com.omb.ocpp.security.certificate.service.TrustStoreService;
 import com.omb.ocpp.server.OcppServerService;
 import com.omb.ocpp.server.iso15118.dto.InstallCertificateRequest;
+import com.omb.ocpp.server.iso15118.dto.SignedUpdateFirmwareRequest;
 import eu.chargetime.ocpp.NotConnectedException;
 import eu.chargetime.ocpp.OccurenceConstraintException;
 import eu.chargetime.ocpp.UnsupportedFeatureException;
@@ -390,6 +391,18 @@ public class RestAPI {
         }
     }
 
+    @POST
+    @Path("send-signed-firmware-update")
+    public Response sendSignedUpdateFirmwareRequest(SignedUpdateFirmwareRequest signedUpdateFirmwareRequest) {
+        return sendRequestToFirstClient(signedUpdateFirmwareRequest);
+    }
+
+    @POST
+    @Path("send-signed-firmware-update-to-all")
+    public Response sendSignedUpdateFirmwareRequestToAll(SignedUpdateFirmwareRequest signedUpdateFirmwareRequest) {
+        return sendRequestToAll(signedUpdateFirmwareRequest);
+    }
+
     private Response sendRequestToAll(Request request) {
         try {
             List<MultiClientResponse> responses = new LinkedList<>();
@@ -399,6 +412,15 @@ public class RestAPI {
             }
 
             return Response.ok().entity(responses).build();
+        } catch (NotConnectedException | OccurenceConstraintException | UnsupportedFeatureException | InterruptedException | ExecutionException e) {
+            LOGGER.error("Could not send request", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), e.getMessage()).build();
+        }
+    }
+
+    private Response sendRequestToFirstClient(Request request) {
+        try {
+            return Response.ok().entity(ocppServerService.sendToFirstClient(request).toCompletableFuture().get()).build();
         } catch (NotConnectedException | OccurenceConstraintException | UnsupportedFeatureException | InterruptedException | ExecutionException e) {
             LOGGER.error("Could not send request", e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), e.getMessage()).build();

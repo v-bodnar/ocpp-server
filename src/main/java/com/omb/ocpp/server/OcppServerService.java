@@ -185,6 +185,12 @@ public class OcppServerService {
         return responses;
     }
 
+    public CompletionStage<Confirmation> sendToFirstClient(Request request) throws NotConnectedException,
+            OccurenceConstraintException,
+            UnsupportedFeatureException {
+        return server.send(sessionList.keySet().iterator().next(), request);
+    }
+
     public CompletionStage<Confirmation> send(Request request) throws NotConnectedException,
             OccurenceConstraintException,
             UnsupportedFeatureException {
