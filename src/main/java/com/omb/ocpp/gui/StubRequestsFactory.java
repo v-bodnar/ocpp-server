@@ -140,16 +140,12 @@ public class StubRequestsFactory {
     }
 
     private static String getChangeAvailabilityRequest() throws JsonProcessingException {
-        ChangeAvailabilityRequest changeAvailabilityRequest = new ChangeAvailabilityRequest();
-        changeAvailabilityRequest.setConnectorId(1);
-        changeAvailabilityRequest.setType(AvailabilityType.Operative);
+        ChangeAvailabilityRequest changeAvailabilityRequest = new ChangeAvailabilityRequest(1, AvailabilityType.Operative);
         return objectMapper.writeValueAsString(changeAvailabilityRequest);
     }
 
     private static String getChangeConfigurationRequest() throws JsonProcessingException {
-        ChangeConfigurationRequest changeConfigurationRequest = new ChangeConfigurationRequest();
-        changeConfigurationRequest.setKey("AuthorizationCacheEnabled");
-        changeConfigurationRequest.setValue("false");
+        ChangeConfigurationRequest changeConfigurationRequest = new ChangeConfigurationRequest("AuthorizationCacheEnabled", "false");
         return objectMapper.writeValueAsString(changeConfigurationRequest);
     }
 
@@ -159,10 +155,9 @@ public class StubRequestsFactory {
     }
 
     private static String getDataTransferRequest() throws JsonProcessingException {
-        DataTransferRequest dataTransferRequest = new DataTransferRequest();
+        DataTransferRequest dataTransferRequest = new DataTransferRequest("VendorId");
         dataTransferRequest.setData("Data message");
         dataTransferRequest.setMessageId("MessageId");
-        dataTransferRequest.setVendorId("VendorId");
         return objectMapper.writeValueAsString(dataTransferRequest);
     }
 
@@ -173,64 +168,51 @@ public class StubRequestsFactory {
     }
 
     private static String getMeterValuesRequest() throws JsonProcessingException {
-        SampledValue sampledValue = new SampledValue();
+        SampledValue sampledValue = new SampledValue("100");
         sampledValue.setValue("100");
-        sampledValue.setPhase("N");
-        MeterValue meterValue = new MeterValue();
-        meterValue.setSampledValue(new SampledValue[]{sampledValue});
-        meterValue.setTimestamp(Calendar.getInstance());
-        MeterValuesRequest meterValuesRequest = new MeterValuesRequest();
-        meterValuesRequest.setConnectorId(1);
+        MeterValue meterValue = new MeterValue(ZonedDateTime.now(),new SampledValue[]{sampledValue});
+        MeterValuesRequest meterValuesRequest = new MeterValuesRequest(1);
         meterValuesRequest.setMeterValue(new MeterValue[]{meterValue});
         meterValuesRequest.setTransactionId(123456);
         return objectMapper.writeValueAsString(meterValuesRequest);
     }
 
     private static String getRemoteStartTransactionRequest() throws JsonProcessingException {
-        RemoteStartTransactionRequest remoteStartTransactionRequest = new RemoteStartTransactionRequest();
+        RemoteStartTransactionRequest remoteStartTransactionRequest = new RemoteStartTransactionRequest("idTag");
         remoteStartTransactionRequest.setConnectorId(1);
-        remoteStartTransactionRequest.setIdTag("idTag");
         remoteStartTransactionRequest.setChargingProfile(new ChargingProfile());
         return objectMapper.writeValueAsString(remoteStartTransactionRequest);
     }
 
     private static String getRemoteStopTransactionRequest() throws JsonProcessingException {
-        RemoteStopTransactionRequest remoteStopTransactionRequest = new RemoteStopTransactionRequest();
-        remoteStopTransactionRequest.setTransactionId(123456);
+        RemoteStopTransactionRequest remoteStopTransactionRequest = new RemoteStopTransactionRequest(123456);
         return objectMapper.writeValueAsString(remoteStopTransactionRequest);
     }
 
     private static String getResetRequest() throws JsonProcessingException {
-        ResetRequest resetRequest = new ResetRequest();
-        resetRequest.setType(ResetType.Soft);
+        ResetRequest resetRequest = new ResetRequest(ResetType.Soft);
         return objectMapper.writeValueAsString(resetRequest);
     }
 
     private static String getUnlockConnectorRequest() throws JsonProcessingException {
-        UnlockConnectorRequest unlockConnectorRequest = new UnlockConnectorRequest();
-        unlockConnectorRequest.setConnectorId(1);
+        UnlockConnectorRequest unlockConnectorRequest = new UnlockConnectorRequest(1);
         return objectMapper.writeValueAsString(unlockConnectorRequest);
     }
 
     private static String getDiagnosticsStatusNotificationRequest() throws JsonProcessingException {
-        DiagnosticsStatusNotificationRequest diagnosticsStatusNotificationRequest = new DiagnosticsStatusNotificationRequest();
-        diagnosticsStatusNotificationRequest.setStatus(DiagnosticsStatus.Idle);
+        DiagnosticsStatusNotificationRequest diagnosticsStatusNotificationRequest = new DiagnosticsStatusNotificationRequest(DiagnosticsStatus.Idle);
         return objectMapper.writeValueAsString(diagnosticsStatusNotificationRequest);
     }
 
     private static String getFirmwareStatusNotificationRequest() throws JsonProcessingException {
-        FirmwareStatusNotificationRequest firmwareStatusNotificationRequest = new FirmwareStatusNotificationRequest();
-        firmwareStatusNotificationRequest.setStatus(FirmwareStatus.Idle);
+        FirmwareStatusNotificationRequest firmwareStatusNotificationRequest = new FirmwareStatusNotificationRequest(FirmwareStatus.Idle);
         return objectMapper.writeValueAsString(firmwareStatusNotificationRequest);
     }
 
     private static String getGetDiagnosticsRequest() throws JsonProcessingException {
-        Calendar startDate = Calendar.getInstance();
-        startDate.add(Calendar.DATE, 1);
-        Calendar stopDate = Calendar.getInstance();
-        stopDate.add(Calendar.DATE, 2);
-        GetDiagnosticsRequest getDiagnosticsRequest = new GetDiagnosticsRequest();
-        getDiagnosticsRequest.setLocation("ftp://localhost/downloadFolder");
+        ZonedDateTime startDate = ZonedDateTime.now().plus(1, ChronoUnit.DAYS);
+        ZonedDateTime stopDate = ZonedDateTime.now().plus(2, ChronoUnit.DAYS);
+        GetDiagnosticsRequest getDiagnosticsRequest = new GetDiagnosticsRequest("ftp://localhost/downloadFolder");
         getDiagnosticsRequest.setRetries(2);
         getDiagnosticsRequest.setRetryInterval(5);
         getDiagnosticsRequest.setStartTime(startDate);
@@ -239,13 +221,10 @@ public class StubRequestsFactory {
     }
 
     private static String getUpdateFirmwareRequest() throws JsonProcessingException {
-        UpdateFirmwareRequest updateFirmwareRequest = new UpdateFirmwareRequest();
-        Calendar startDate = Calendar.getInstance();
-        startDate.add(Calendar.DATE, 1);
-        updateFirmwareRequest.setLocation("ftp://localhost/downloadFolder");
+        ZonedDateTime startDate = ZonedDateTime.now().plus(1, ChronoUnit.DAYS);
+        UpdateFirmwareRequest updateFirmwareRequest = new UpdateFirmwareRequest("ftp://localhost/downloadFolder", startDate);
         updateFirmwareRequest.setRetries(2);
         updateFirmwareRequest.setRetryInterval(5);
-        updateFirmwareRequest.setRetrieveDate(startDate);
         return objectMapper.writeValueAsString(updateFirmwareRequest);
     }
 
@@ -281,34 +260,29 @@ public class StubRequestsFactory {
     }
 
     private static String getSendLocalListRequest() throws JsonProcessingException {
-        SendLocalListRequest sendLocalListRequest = new SendLocalListRequest();
+        SendLocalListRequest sendLocalListRequest = new SendLocalListRequest(0, null);
         return objectMapper.writeValueAsString(sendLocalListRequest);
     }
 
     private static String getTriggerMessageRequest() throws JsonProcessingException {
-        TriggerMessageRequest triggerMessageRequest = new TriggerMessageRequest();
+        TriggerMessageRequest triggerMessageRequest = new TriggerMessageRequest(TriggerMessageRequestType.Heartbeat);
         triggerMessageRequest.setConnectorId(1);
-        triggerMessageRequest.setRequestedMessage(TriggerMessageRequestType.Heartbeat);
         return objectMapper.writeValueAsString(triggerMessageRequest);
     }
 
     private static String getExtendedTriggerMessageRequest() throws JsonProcessingException {
         ExtendedTriggerMessageRequest extendedTriggerMessageRequest = new ExtendedTriggerMessageRequest();
         extendedTriggerMessageRequest.setConnectorId(1);
-        extendedTriggerMessageRequest.setMessageTriggerType(ExtendedTriggerMessage.BOOT_NOTIFICATION.SIGN_CHARGE_POINT_CERTIFICATE);
+        extendedTriggerMessageRequest.setMessageTriggerType(ExtendedTriggerMessage.SIGN_CHARGE_POINT_CERTIFICATE);
         return objectMapper.writeValueAsString(extendedTriggerMessageRequest);
     }
 
     private static String getSetChargingProfileRequest() throws JsonProcessingException {
-        ChargingSchedulePeriod chargingSchedulePeriod1 = new ChargingSchedulePeriod();
-        chargingSchedulePeriod1.setLimit(20d);
+        ChargingSchedulePeriod chargingSchedulePeriod1 = new ChargingSchedulePeriod(0, 20d);
         chargingSchedulePeriod1.setNumberPhases(3);
-        chargingSchedulePeriod1.setStartPeriod(0);
 
-        ChargingSchedulePeriod chargingSchedulePeriod2 = new ChargingSchedulePeriod();
-        chargingSchedulePeriod2.setLimit(30d);
+        ChargingSchedulePeriod chargingSchedulePeriod2 = new ChargingSchedulePeriod((int) ChronoUnit.DAYS.getDuration().getSeconds(), 30d);
         chargingSchedulePeriod2.setNumberPhases(3);
-        chargingSchedulePeriod2.setStartPeriod((int) ChronoUnit.DAYS.getDuration().getSeconds());
 
         ChargingProfileBuilder chargingProfileBuilder = new ChargingProfileBuilder()
                 .withChargingProfileId(1234)
@@ -323,9 +297,7 @@ public class StubRequestsFactory {
                 .withChargingScheduleDuration((int) ChronoUnit.DAYS.getDuration().getSeconds() * 2)
                 .withChargingSchedulePeriods(chargingSchedulePeriod1, chargingSchedulePeriod2);
 
-        SetChargingProfileRequest setChargingProfileRequest = new SetChargingProfileRequest();
-        setChargingProfileRequest.setConnectorId(1);
-        setChargingProfileRequest.setCsChargingProfiles(chargingProfileBuilder.build());
+        SetChargingProfileRequest setChargingProfileRequest = new SetChargingProfileRequest(1, chargingProfileBuilder.build());
 
         return objectMapper.writeValueAsString(setChargingProfileRequest);
     }
@@ -340,7 +312,7 @@ public class StubRequestsFactory {
         return objectMapper.writeValueAsString(clearChargingProfileRequest);
     }
 
-    private static String getIso15118TriggerMessageRequest() throws JsonProcessingException {
+    private static String getIso15118TriggerMessageRequest() {
         com.omb.ocpp.server.iso15118.dto.TriggerMessageRequest triggerMessageRequest =
                 new com.omb.ocpp.server.iso15118.dto.TriggerMessageRequest();
         triggerMessageRequest.setConnectorId(1);
@@ -462,23 +434,16 @@ public class StubRequestsFactory {
         }
 
         public ChargingProfile build() {
-            ChargingSchedule chargingSchedule = new ChargingSchedule();
-            chargingSchedule.setChargingRateUnit(chargingRateUnitType);
+            ChargingSchedule chargingSchedule = new ChargingSchedule(chargingRateUnitType, chargingSchedulePeriods.toArray(new ChargingSchedulePeriod[0]));
             chargingSchedule.setDuration(chargingScheduleDuration);
             chargingSchedule.setMinChargingRate(minChargingRate);
-            chargingSchedule.setStartSchedule(GregorianCalendar.from(ZonedDateTime.ofInstant(startSchedule, ZoneOffset.UTC)));
-            chargingSchedule.setChargingSchedulePeriod(chargingSchedulePeriods.toArray(new ChargingSchedulePeriod[0]));
+            chargingSchedule.setStartSchedule(ZonedDateTime.ofInstant(startSchedule, ZoneOffset.UTC));
 
-            ChargingProfile chargingProfile = new ChargingProfile();
-            chargingProfile.setChargingProfileId(chargingProfileId);
+            ChargingProfile chargingProfile = new ChargingProfile(chargingProfileId, stackLevel, chargingProfilePurposeType, chargingProfileKindType, chargingSchedule);
             chargingProfile.setTransactionId(transactionId);
-            chargingProfile.setChargingProfilePurpose(chargingProfilePurposeType);
-            chargingProfile.setChargingProfileKind(chargingProfileKindType);
             chargingProfile.setRecurrencyKind(recurrencyKindType);
-            chargingProfile.setStackLevel(stackLevel);
-            chargingProfile.setValidFrom(GregorianCalendar.from(ZonedDateTime.ofInstant(validFrom, ZoneOffset.UTC)));
-            chargingProfile.setValidTo(GregorianCalendar.from(ZonedDateTime.ofInstant(validTo, ZoneOffset.UTC)));
-            chargingProfile.setChargingSchedule(chargingSchedule);
+            chargingProfile.setValidFrom(ZonedDateTime.ofInstant(validFrom, ZoneOffset.UTC));
+            chargingProfile.setValidTo(ZonedDateTime.ofInstant(validTo, ZoneOffset.UTC));
             return chargingProfile;
         }
     }
