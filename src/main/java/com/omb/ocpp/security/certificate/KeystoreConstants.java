@@ -3,7 +3,7 @@ package com.omb.ocpp.security.certificate;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static com.omb.ocpp.Application.OCPP_SERVER_HOME;
+import static com.omb.ocpp.gui.Application.OCPP_SERVER_HOME;
 
 public class KeystoreConstants {
     public static final Path KEYSTORE_ROOT_FOLDER_PATH = Paths.get(OCPP_SERVER_HOME, "ssl");

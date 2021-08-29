@@ -30,7 +30,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.omb.ocpp.Application.OCPP_SERVER_HOME;
+import static com.omb.ocpp.gui.Application.OCPP_SERVER_HOME;
 
 @Service
 public class GroovyService {

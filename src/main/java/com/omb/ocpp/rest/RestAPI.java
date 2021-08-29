@@ -3,7 +3,7 @@ package com.omb.ocpp.rest;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.omb.ocpp.groovy.GroovyService;
-import com.omb.ocpp.Application;
+import com.omb.ocpp.gui.Application;
 import com.omb.ocpp.security.certificate.api.KeystoreApi;
 import com.omb.ocpp.security.certificate.config.KeystoreCertificateConfig;
 import com.omb.ocpp.security.certificate.service.TrustStoreService;

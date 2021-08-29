@@ -1,4 +1,4 @@
-package com.omb.ocpp;
+package com.omb.ocpp.gui;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;

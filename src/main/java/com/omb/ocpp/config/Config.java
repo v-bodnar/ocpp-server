@@ -1,6 +1,6 @@
 package com.omb.ocpp.config;
 
-import com.omb.ocpp.Application;
+import com.omb.ocpp.gui.Application;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.PropertiesConfigurationLayout;
@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 
-import static com.omb.ocpp.Application.OCPP_SERVER_HOME;
+import static com.omb.ocpp.gui.Application.OCPP_SERVER_HOME;
 
 public class Config {
     private static final Logger LOGGER = LoggerFactory.getLogger(Application.class);

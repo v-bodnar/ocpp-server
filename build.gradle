@@ -14,10 +14,10 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 
-mainClassName='com.omb.ocpp.Application'
+mainClassName='com.omb.ocpp.gui.Application'
 jar {
     manifest {
-        attributes 'Main-Class': 'com.omb.ocpp.Application'
+        attributes 'Main-Class': 'com.omb.ocpp.gui.Application'
     }
     exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
     from {

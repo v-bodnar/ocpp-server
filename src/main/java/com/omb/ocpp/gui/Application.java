@@ -1,4 +1,4 @@
-package com.omb.ocpp;
+package com.omb.ocpp.gui;
 
 import com.omb.ocpp.config.Config;
 import com.omb.ocpp.config.ConfigKey;
