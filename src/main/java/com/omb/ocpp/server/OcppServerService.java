@@ -41,7 +41,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
-import static com.omb.ocpp.gui.StubRequestsFactory.toJson;
+import static com.omb.ocpp.StubRequestsFactory.toJson;
 
 @Service
 public class OcppServerService {

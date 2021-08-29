@@ -1,4 +1,4 @@
-package com.omb.ocpp.gui;
+package com.omb.ocpp;
 
 import com.omb.ocpp.config.Config;
 import com.omb.ocpp.config.ConfigKey;
@@ -51,7 +51,7 @@ public class Application {
     public static void main(String[] args) {
         try {
             createRootFolder();
-            APPLICATION.start();
+            APPLICATION.startNoGui();
         } catch (Exception e) {
             LOGGER.error("Critical error, closing app", e);
             System.exit(0);
@@ -69,14 +69,6 @@ public class Application {
             } catch (IOException e) {
                 LOGGER.error(String.format("Error during %s creation", OCPP_SERVER_HOME), e);
             }
-        }
-    }
-
-    private void start() throws Exception {
-        if (config.getBoolean(ConfigKey.GUI_MODE)) {
-            GuiApplication.main(new String[0]);
-        } else {
-            startNoGui();
         }
     }
 

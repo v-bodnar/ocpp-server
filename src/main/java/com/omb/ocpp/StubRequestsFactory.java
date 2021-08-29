@@ -1,4 +1,4 @@
-package com.omb.ocpp.gui;
+package com.omb.ocpp;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -57,7 +57,6 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;

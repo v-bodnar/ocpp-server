@@ -1,4 +1,4 @@
-package com.omb.ocpp.gui;
+package com.omb.ocpp;
 
 import com.omb.ocpp.config.Config;
 import com.omb.ocpp.groovy.GroovyService;
