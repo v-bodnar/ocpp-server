@@ -1,3 +1,8 @@
+# WARNING!!!
+
+I don't support this repository any more. You are free to use it as you wish. But most likely it will not get any updates
+
+
 # Java FX 12 GUI OCPP server
 
 **Features**
